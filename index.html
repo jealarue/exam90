@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CompTIA Security+ (SY0-701) — 90-Question Practice Exam</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="tag">SY0-701 · Full Practice Exam</span>
+      <h1>CompTIA Security+ 90-Question Practice Exam</h1>
+      <p class="subtitle">
+        Domain-weighted to match the official SY0-701 blueprint · 15 acronym questions ·
+        scenario items · [SELECT TWO] support · 2 attempts per question
+      </p>
+    </header>
+
+    <!-- Top control panel -->
+    <div class="control-panel">
+      <div class="timer-box">
+        <div class="timer-label">Exam Timer</div>
+        <div class="timer-display" id="timerDisplay">90:00</div>
+        <div class="timer-buttons">
+          <button class="btn-mini" id="timerStart" type="button">Start</button>
+          <button class="btn-mini" id="timerPause" type="button" disabled>Pause</button>
+          <button class="btn-mini ghost" id="timerReset" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="filter-box">
+        <label for="domainFilter">Filter by Domain</label>
+        <select id="domainFilter">
+          <option value="all">All Domains (90 questions)</option>
+          <option value="1">Domain 1 — General Security Concepts (11)</option>
+          <option value="2">Domain 2 — Threats, Vulnerabilities &amp; Mitigations (20)</option>
+          <option value="3">Domain 3 — Security Architecture (16)</option>
+          <option value="4">Domain 4 — Security Operations (25)</option>
+          <option value="5">Domain 5 — Security Program Management (18)</option>
+          <option value="acronym">Acronym Questions Only (15)</option>
+          <option value="scenario">Scenario Questions Only</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" role="status" aria-live="polite">
+      <div class="progress-text" id="progressText">Progress: 0 / 90 answered</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="score-pill" id="scorePill">Score: 0 / 90</div>
+    </div>
+
+    <main id="quiz"></main>
+
+    <div class="bottom-nav">
+      <button class="btn ghost" id="resetBtn" type="button">Reset Exam</button>
+      <small style="color: var(--muted);">
+        Scoring: 1&nbsp;pt first-try · 0.5&nbsp;pt second-try · 0 if missed.
+        Pass threshold: ~83% (75/90).
+      </small>
+    </div>
+  </div>
+
+  <script src="assets/quiz-data.js"></script>
+  <script src="assets/quiz.js"></script>
+</body>
+</html>
