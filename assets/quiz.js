@@ -290,28 +290,33 @@
   function renderConfigSummary() {
     if (!configSummary) return;
     const pbqInfo = computePbqCount();
-    const pillMode = examSettings.attemptsAllowed === 1 ? "1 chance" : "2 chances";
+    const totalQ = totalTargetQuestions();
+    const pbqUsed = examSettings.includePBQs ? pbqInfo.used : 0;
+    const mcqUsed = Math.max(0, totalQ - pbqUsed);
+
+    const pillMode  = examSettings.attemptsAllowed === 1 ? "1 chance" : "2 chances";
     const pillTimer = examSettings.timerMinutes + " min";
-    const pillPbq = examSettings.includePBQs
-      ? ("PBQs " + examSettings.pbqPercent + "% (" + pbqInfo.used + " of " + pbqInfo.available + ")")
-      : "PBQs off";
-    const pillPool = examSettings.poolMode === "random"
-      ? (examSettings.poolSize + " random MCQs")
-      : "All 90 MCQs";
+    const pillPool  = examSettings.poolMode === "random"
+      ? ("Random " + totalQ + "-question exam")
+      : ("Full " + totalQ + "-question exam");
+    const pillMix   = examSettings.includePBQs
+      ? ("Mix: " + mcqUsed + " MCQ + " + pbqUsed + " PBQ" +
+         "  (" + examSettings.pbqPercent + "% PBQs of " + totalQ + ")")
+      : ("Mix: " + mcqUsed + " MCQ + 0 PBQ");
 
     let warn = "";
     if (examSettings.includePBQs && pbqInfo.desired > pbqInfo.available) {
       warn = '<span class="summary-warn">⚠ Not enough PBQ-tagged questions available (' +
              pbqInfo.desired + ' requested, only ' + pbqInfo.available +
-             ' available). All available PBQs will be included.</span>';
+             ' available). All available PBQs will be included; remaining slots will be MCQs.</span>';
     }
 
     configSummary.innerHTML =
       '<strong>Selected:</strong> ' +
       '<span class="summary-pill">' + escapeHtml(pillMode) + '</span>' +
       '<span class="summary-pill">' + escapeHtml(pillTimer) + '</span>' +
-      '<span class="summary-pill">' + escapeHtml(pillPbq) + '</span>' +
       '<span class="summary-pill">' + escapeHtml(pillPool) + '</span>' +
+      '<span class="summary-pill">' + escapeHtml(pillMix) + '</span>' +
       warn;
   }
 
@@ -420,30 +425,45 @@
     pool = [];
     let warning = "";
 
-    // PBQs first (selected before regular MCQs per requirement)
-    if (examSettings.includePBQs && Array.isArray(window.PBQ_DATA)) {
-      const desired = Math.round((examSettings.pbqPercent / 100) * totalTargetQuestions());
-      const pbqs = window.PBQ_DATA.slice();
-      shuffle(pbqs);
-      const take = Math.min(desired, pbqs.length);
-      pbqs.slice(0, take).forEach((p) => {
-        pool.push({ kind: "pbq", uid: "pbq-" + p.pbqId, q: p });
-      });
-      if (desired > pbqs.length) {
-        warning = "Only " + pbqs.length + " PBQ-tagged question" + (pbqs.length === 1 ? "" : "s") +
-                  " available; you requested " + desired + " (" + examSettings.pbqPercent +
-                  "% of " + totalTargetQuestions() + "). All available PBQs were included.";
+    // Total exam size — PBQs REPLACE MCQs in this slot count, they do not
+    // inflate it. So: 90 total + 10% PBQs => 9 PBQs + 81 MCQs (= 90), not 99.
+    const total   = totalTargetQuestions();
+    const pbqsAll = Array.isArray(window.PBQ_DATA)  ? window.PBQ_DATA.slice()  : [];
+    const mcqsAll = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.slice() : [];
+
+    // PBQ slice (capped by what's available)
+    let pbqsToUse = [];
+    let pbqUsed   = 0;
+    if (examSettings.includePBQs && pbqsAll.length > 0) {
+      const desired = Math.round((examSettings.pbqPercent / 100) * total);
+      pbqUsed = Math.min(desired, pbqsAll.length);
+      shuffle(pbqsAll);
+      pbqsToUse = pbqsAll.slice(0, pbqUsed);
+      if (desired > pbqsAll.length) {
+        warning = "Only " + pbqsAll.length + " PBQ-tagged question" +
+                  (pbqsAll.length === 1 ? "" : "s") +
+                  " available; you requested " + desired + " (" +
+                  examSettings.pbqPercent + "% of " + total + "). All available " +
+                  "PBQs were included; the remaining slots were filled with MCQs.";
       }
     }
 
-    // MCQs
-    let mcqs = (Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA : []).slice();
-    if (examSettings.poolMode === "random") {
-      shuffle(mcqs);
-      mcqs = mcqs.slice(0, examSettings.poolSize);
-      mcqs.sort((a, b) => a.num - b.num);
-    }
-    mcqs.forEach((q) => pool.push({ kind: "mcq", uid: "mcq-" + q.num, q: q }));
+    // MCQ slice = remaining slots, randomly drawn from QUIZ_DATA
+    const mcqSlots = Math.max(0, total - pbqUsed);
+    shuffle(mcqsAll);
+    const mcqsToUse = mcqsAll.slice(0, Math.min(mcqSlots, mcqsAll.length));
+
+    // Build pool entries
+    pbqsToUse.forEach((p) => {
+      pool.push({ kind: "pbq", uid: "pbq-" + p.pbqId, q: p });
+    });
+    mcqsToUse.forEach((q) => {
+      pool.push({ kind: "mcq", uid: "mcq-" + q.num, q: q });
+    });
+
+    // Randomize the presentation order so PBQs are interspersed with MCQs
+    // rather than clustered at the front.
+    shuffle(pool);
 
     return { warning: warning };
   }
