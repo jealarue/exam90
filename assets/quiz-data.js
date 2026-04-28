@@ -638,7 +638,403 @@ window.QUIZ_DATA = [
     options: { A: "Implement the control regardless of cost", B: "Reject the proposed control because the cost far exceeds the expected loss; explore cheaper alternatives or accept the risk", C: "Outsource all operations to remove the risk", D: "Ignore the risk and remove it from the register" },
     correct: "B",
     explanation: "A defensible decision balances control cost against expected loss; spending $500K to prevent $80K/yr fails cost-benefit absent other drivers.",
-    wrongHint: { letter: "A", text: "Implementing controls without economic justification wastes scarce security budget that could reduce higher-impact risks." } }
+    wrongHint: { letter: "A", text: "Implementing controls without economic justification wastes scarce security budget that could reduce higher-impact risks." } },
+
+  // =========================================================================
+  // Pool expansion (Q91+): variations on the original 90 plus additional
+  // angles on the same SY0-701 objectives. Preserves the official domain
+  // weighting so any random subset still mirrors the blueprint distribution.
+  // =========================================================================
+
+  // ---- Domain 1 expansion (+7) ----
+  { num: 91, domain: "Domain 1.1 — Control Categories", domainNum: 1, acronym: false, scenario: false, selectMulti: false,
+    stem: "Full-disk encryption deployed via BitLocker on every laptop is BEST classified as which control category?",
+    options: { A: "Managerial", B: "Operational", C: "Technical", D: "Physical" },
+    correct: "C",
+    explanation: "Encryption is enforced by technology, making it a technical (logical) control.",
+    wrongHint: { letter: "B", text: "Operational controls are people-driven (e.g., guards, training delivery), not technology-enforced." } },
+
+  { num: 92, domain: "Domain 1.2 — CIA Triad", domainNum: 1, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A volumetric DDoS attack saturates the public-facing API and legitimate users can no longer reach the service. Which CIA property is PRIMARILY violated?",
+    options: { A: "Confidentiality", B: "Integrity", C: "Availability", D: "Non-repudiation" },
+    correct: "C",
+    explanation: "Denial-of-service attacks degrade availability — the assurance that systems and data are usable when needed.",
+    wrongHint: { letter: "B", text: "Integrity is unaffected; the data is unchanged, just unreachable." } },
+
+  { num: 93, domain: "Domain 1.4 — MFA", domainNum: 1, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] Which expansion of MFA is correct?",
+    options: { A: "Managed Firewall Audit", B: "Multi-Factor Authentication", C: "Multi-Forest Authorization", D: "Mandatory File Access" },
+    correct: "B",
+    explanation: "MFA = Multi-Factor Authentication — combining factors from at least two different categories (know/have/are/where/do).",
+    wrongHint: { letter: "C", text: "Multi-Forest Authorization is not a standard term; it conflates AD-forest with MFA semantics." } },
+
+  { num: 94, domain: "Domain 1.3 — Change Management", domainNum: 1, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A critical zero-day patch must be applied to internet-facing servers within the next two hours. Which change-management track is appropriate?",
+    options: { A: "Standard change with a 14-day CAB review", B: "Emergency change with expedited approval and post-implementation review", C: "Skip change management entirely; this is an outage", D: "Defer until the next quarterly maintenance window" },
+    correct: "B",
+    explanation: "Emergency changes have an accelerated approval path with post-implementation review documented later — control is still maintained.",
+    wrongHint: { letter: "C", text: "Bypassing change management entirely loses traceability and may create audit findings." } },
+
+  { num: 95, domain: "Domain 1.4 — PKI Hierarchy", domainNum: 1, acronym: false, scenario: false, selectMulti: false,
+    stem: "Why do most organizations issue end-entity certificates from an intermediate CA rather than directly from the offline root CA?",
+    options: { A: "Intermediate CAs run faster than root CAs", B: "It limits the blast radius if a signing CA is compromised — only the intermediate (not the root) must be revoked", C: "Browsers reject certificates signed by root CAs", D: "It removes the need for a CRL" },
+    correct: "B",
+    explanation: "Keeping the root CA offline and signing via intermediates means a compromised intermediate can be revoked without invalidating the root trust anchor.",
+    wrongHint: { letter: "C", text: "Browsers do trust root-CA-signed certs in principle; issuance via intermediates is operational, not a browser requirement." } },
+
+  { num: 96, domain: "Domain 1.4 — AAA", domainNum: 1, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] In identity and access management, AAA stands for which three functions?",
+    options: { A: "Audit, Approval, Authorization", B: "Authentication, Authorization, Accounting", C: "Access, Authority, Accountability", D: "Authentication, Auditing, Approval" },
+    correct: "B",
+    explanation: "AAA = Authentication (who you are), Authorization (what you can do), Accounting (what you did). RADIUS and TACACS+ implement AAA.",
+    wrongHint: { letter: "C", text: "Accountability is a related concept, but the canonical CompTIA AAA expansion is Authentication / Authorization / Accounting." } },
+
+  { num: 97, domain: "Domain 1.4 — Hashing vs Encryption", domainNum: 1, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which property differentiates a cryptographic hash function from symmetric encryption?",
+    options: { A: "Hashes use longer keys than encryption", B: "Hashes are one-way and produce a fixed-length digest; encryption is reversible with the key", C: "Encryption is faster than hashing", D: "Hashes guarantee confidentiality of the input" },
+    correct: "B",
+    explanation: "Hashes (SHA-256, etc.) are one-way and fixed-length; encryption is reversible given the key. Hashing protects integrity, encryption protects confidentiality.",
+    wrongHint: { letter: "D", text: "Hashes do not provide confidentiality — they are designed to be deterministic and one-way, not secret." } },
+
+  // ---- Domain 2 expansion (+12) ----
+  { num: 98, domain: "Domain 2.5 — Stack Canaries", domainNum: 2, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which compile-time mitigation places a known sentinel value between the local stack frame and the saved return address to detect classic stack-smashing buffer overflows?",
+    options: { A: "ASLR", B: "DEP/NX", C: "Stack canaries", D: "Control Flow Guard (CFG)" },
+    correct: "C",
+    explanation: "Stack canaries (a.k.a. stack cookies) catch overflow corruption when the canary value changes before function return.",
+    wrongHint: { letter: "A", text: "ASLR randomizes addresses but does not detect a canary corruption." } },
+
+  { num: 99, domain: "Domain 2.2 — Phishing Indicators", domainNum: 2, acronym: false, scenario: false, selectMulti: true,
+    stem: "[SELECT TWO] Which indicators MOST strongly suggest a message is a phishing attempt?",
+    options: { A: "An urgent demand for action with a threat of consequences", B: "Use of a known internal employee directory listing", C: "A mismatched sender domain that resembles but does not match the organization's", D: "Email signed with the company's DKIM-aligned domain", E: "Plain-text greeting with the user's full name" },
+    correct: ["A", "C"],
+    explanation: "Manufactured urgency and lookalike sender domains are classic phishing red flags. DKIM-aligned signatures and accurate internal directory data are typically legitimate signals.",
+    wrongHint: { letter: "D", text: "DKIM alignment proves the sender domain authorized the message — that's a legitimacy signal, not a phishing indicator." } },
+
+  { num: 100, domain: "Domain 2.2 — Insider Threat", domainNum: 2, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) An employee preparing to resign suddenly downloads thousands of customer-list records to a personal USB drive after hours. Which threat actor type does this BEST illustrate?",
+    options: { A: "Hacktivist", B: "Nation-state APT", C: "Malicious insider", D: "Script kiddie" },
+    correct: "C",
+    explanation: "Authorized users abusing their legitimate access to exfiltrate data are malicious insiders.",
+    wrongHint: { letter: "B", text: "Nation-state APTs are external sophisticated actors; the access pattern here is a privileged employee." } },
+
+  { num: 101, domain: "Domain 2.4 — Race Condition", domainNum: 2, acronym: false, scenario: false, selectMulti: false,
+    stem: "Time-of-check / time-of-use (TOCTOU) flaws are a class of which broader vulnerability?",
+    options: { A: "Buffer overflow", B: "Race condition", C: "Cross-site scripting", D: "SQL injection" },
+    correct: "B",
+    explanation: "TOCTOU exploits the gap between checking a resource's state and using it — a textbook race condition.",
+    wrongHint: { letter: "A", text: "Buffer overflows overrun memory boundaries; TOCTOU is a timing/concurrency flaw." } },
+
+  { num: 102, domain: "Domain 2.4 — Watering Hole", domainNum: 2, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) An adversary compromises an industry-association website that engineers in a target sector frequently visit, embedding an exploit kit that fires only on visits from those engineers' IP ranges. Which attack technique is this?",
+    options: { A: "Spear phishing", B: "Watering-hole attack", C: "Typosquatting", D: "Drive-by NFC" },
+    correct: "B",
+    explanation: "A watering-hole attack compromises a site the target audience trusts and waits for them to come to it.",
+    wrongHint: { letter: "A", text: "Spear phishing requires sending a tailored message to the victim; watering-hole attacks are passive on the compromised site." } },
+
+  { num: 103, domain: "Domain 2.4 — DNS Poisoning", domainNum: 2, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which protocol is designed PRIMARILY to defend resolvers against forged DNS responses by validating signatures on records?",
+    options: { A: "DNSSEC", B: "DoT (DNS-over-TLS)", C: "DoH (DNS-over-HTTPS)", D: "EDNS Client Subnet" },
+    correct: "A",
+    explanation: "DNSSEC adds origin authentication and integrity to DNS responses through a chain of digital signatures.",
+    wrongHint: { letter: "B", text: "DoT/DoH encrypt DNS in transit but do not authenticate the records themselves the way DNSSEC does." } },
+
+  { num: 104, domain: "Domain 2.2 — DDoS", domainNum: 2, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] DDoS expands to:",
+    options: { A: "Distributed Denial of Service", B: "Direct Defense of Server", C: "Domain Discovery on Subnet", D: "Dual-Stack Distribution Service" },
+    correct: "A",
+    explanation: "Distributed Denial of Service — many sources flooding a target to exhaust capacity (bandwidth, sessions, CPU).",
+    wrongHint: { letter: "C", text: "C is a fabricated phrase; DDoS is a denial-of-service technique, not a discovery one." } },
+
+  { num: 105, domain: "Domain 2.2 — Smishing", domainNum: 2, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A user receives a text message claiming to be from the bank, with a shortened URL asking them to verify recent activity. Which social-engineering technique is this?",
+    options: { A: "Vishing", B: "Smishing", C: "Whaling", D: "Pretexting (general)" },
+    correct: "B",
+    explanation: "SMS-based phishing is smishing — phishing delivered over text messaging.",
+    wrongHint: { letter: "A", text: "Vishing is voice/phone phishing; the channel here is SMS, making it smishing." } },
+
+  { num: 106, domain: "Domain 2.4 — Privilege Escalation", domainNum: 2, acronym: false, scenario: false, selectMulti: false,
+    stem: "An attacker who has compromised a low-privileged user account exploits a kernel flaw to obtain SYSTEM/root rights. Which technique class is this?",
+    options: { A: "Lateral movement", B: "Vertical privilege escalation", C: "Horizontal privilege escalation", D: "Pass-the-hash" },
+    correct: "B",
+    explanation: "Gaining higher rights on the same host is vertical privilege escalation. Horizontal is moving to a peer's account at the same privilege level.",
+    wrongHint: { letter: "C", text: "Horizontal escalation moves between equal-privilege accounts; the question describes elevation to SYSTEM/root." } },
+
+  { num: 107, domain: "Domain 2.5 — Heap vs Stack Overflow", domainNum: 2, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which statement BEST distinguishes a heap overflow from a stack overflow?",
+    options: { A: "Heap overflows occur in dynamically allocated memory; stack overflows corrupt local frames and saved return addresses", B: "Heap overflows only happen in interpreted languages", C: "Stack overflows cannot lead to code execution", D: "Heap overflows require root privileges to trigger" },
+    correct: "A",
+    explanation: "Stack overflows clobber the saved return pointer; heap overflows corrupt allocator metadata or adjacent objects in dynamic memory.",
+    wrongHint: { letter: "C", text: "Classic stack overflows famously enabled remote code execution before mitigations like ASLR/DEP/canaries became default." } },
+
+  { num: 108, domain: "Domain 2.4 — CSRF", domainNum: 2, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A logged-in user clicks a malicious link that causes their browser to silently submit a state-changing request to a banking site using their existing session cookie. Which attack class is this?",
+    options: { A: "Stored XSS", B: "Cross-site request forgery (CSRF)", C: "Session fixation", D: "Open redirect" },
+    correct: "B",
+    explanation: "CSRF rides the user's authenticated session to perform actions they did not intend; mitigated with anti-CSRF tokens and SameSite cookies.",
+    wrongHint: { letter: "A", text: "XSS injects script in the victim's browser context; CSRF abuses an existing authenticated session for unintended actions." } },
+
+  { num: 109, domain: "Domain 2.5 — Sandboxing", domainNum: 2, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which control isolates a suspicious file by executing it in a constrained environment that intercepts its behavior?",
+    options: { A: "Network segmentation", B: "Application sandboxing / detonation", C: "Endpoint whitelisting", D: "Patch management" },
+    correct: "B",
+    explanation: "Sandboxes (e.g., malware detonation services) run untrusted code in a controlled environment and observe its behavior.",
+    wrongHint: { letter: "C", text: "Whitelisting prevents unknown binaries from running but does not analyze them in a sandbox." } },
+
+  // ---- Domain 3 expansion (+10) ----
+  { num: 110, domain: "Domain 3.2 — SASE", domainNum: 3, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] In modern cloud-edge security, SASE most accurately stands for:",
+    options: { A: "Secure Access Service Edge", B: "Server-Authenticated Secure Endpoint", C: "Single Account Sign-on Edge", D: "Stateful Application Session Engine" },
+    correct: "A",
+    explanation: "SASE converges SD-WAN with cloud-delivered security (SWG, CASB, ZTNA, FWaaS) at the edge, enforced near the user.",
+    wrongHint: { letter: "C", text: "Single sign-on is unrelated; SASE is an architecture pattern, not a sign-on protocol." } },
+
+  { num: 111, domain: "Domain 3.2 — SD-WAN", domainNum: 3, acronym: false, scenario: false, selectMulti: false,
+    stem: "What is the PRIMARY security and operational benefit of SD-WAN over traditional MPLS-only branch connectivity?",
+    options: { A: "Eliminates the need for any encryption", B: "Centralized policy and dynamic path selection across multiple transports (MPLS, broadband, LTE)", C: "Removes the need for branch routers", D: "Replaces firewalls with switches" },
+    correct: "B",
+    explanation: "SD-WAN abstracts the underlying transports and centralizes policy, enabling cost-effective multi-link architectures with consistent security.",
+    wrongHint: { letter: "A", text: "SD-WAN typically uses IPsec overlays — encryption is still essential." } },
+
+  { num: 112, domain: "Domain 3.2 — Containers vs VMs", domainNum: 3, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which statement BEST describes the security boundary difference between a VM and a container?",
+    options: { A: "Containers are stronger isolation than VMs", B: "VMs share a kernel with the host; containers do not", C: "VMs enforce isolation at the hypervisor; containers share the host kernel and rely on namespaces/cgroups", D: "There is no difference" },
+    correct: "C",
+    explanation: "Hypervisor-based VM isolation is generally stronger than container isolation, which depends on Linux namespaces and cgroups sharing one kernel.",
+    wrongHint: { letter: "A", text: "It's the opposite — VMs typically provide a stronger isolation boundary than containers." } },
+
+  { num: 113, domain: "Domain 3.2 — Microsegmentation", domainNum: 3, acronym: false, scenario: false, selectMulti: false,
+    stem: "What is the PRIMARY security benefit of microsegmentation in a data center or cloud VPC?",
+    options: { A: "Lower IP-address consumption", B: "Restricts east-west traffic between workloads to least-privilege flows", C: "Replaces the need for endpoint protection", D: "Removes the need for IAM policies" },
+    correct: "B",
+    explanation: "Microsegmentation enforces per-workload policy so a compromised host cannot freely reach peer workloads (limits lateral movement).",
+    wrongHint: { letter: "A", text: "Microsegmentation is a security control, not an addressing optimization." } },
+
+  { num: 114, domain: "Domain 3.1 — Cloud SaaS Responsibility", domainNum: 3, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) An organization adopts a SaaS HR platform. Which security responsibility BEST remains with the customer rather than the SaaS provider?",
+    options: { A: "Patching the underlying VM operating systems", B: "Hypervisor management", C: "User access management, data classification, and configuration of tenant security settings", D: "Physical-data-center access controls" },
+    correct: "C",
+    explanation: "In SaaS, customers retain responsibility for their data, identities, and tenant configuration; the provider handles the platform/infra.",
+    wrongHint: { letter: "A", text: "OS patching of provider infrastructure is the SaaS provider's responsibility." } },
+
+  { num: 115, domain: "Domain 3.2 — CASB", domainNum: 3, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] Which technology category does CASB describe?",
+    options: { A: "A device that consolidates router + switch in one chassis", B: "Cloud Access Security Broker — policy enforcement between users and SaaS apps", C: "Confidential Application Sandbox Boundary", D: "Centralized Authentication Service Bus" },
+    correct: "B",
+    explanation: "CASBs sit between users and SaaS providers (inline, API, or both) to enforce DLP, access, and threat-protection policies.",
+    wrongHint: { letter: "D", text: "Authentication brokers exist (e.g., IdPs) but CASB is specifically the cloud-app security control plane." } },
+
+  { num: 116, domain: "Domain 3.2 — TLS Handshake", domainNum: 3, acronym: false, scenario: false, selectMulti: false,
+    stem: "What does the TLS handshake establish between client and server?",
+    options: { A: "Just the application-layer URL", B: "An authenticated, integrity-protected session with negotiated cipher suite and shared keys", C: "A persistent layer-2 frame tunnel", D: "Only server identity, with no key material" },
+    correct: "B",
+    explanation: "The handshake authenticates the server (and optionally client), negotiates cipher suite and protocol version, and derives session keys.",
+    wrongHint: { letter: "D", text: "Modern TLS handshakes derive ephemeral session keys via (EC)DHE; identity verification alone is incomplete." } },
+
+  { num: 117, domain: "Domain 3.2 — VPN Split Tunneling", domainNum: 3, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A remote-work VPN is configured so that only traffic destined to corporate networks goes through the tunnel; everything else egresses directly. Which configuration is described, and what is its main security trade-off?",
+    options: { A: "Full tunnel — every flow inspected by corporate controls", B: "Split tunneling — improves performance but bypasses corporate inspection for non-corporate traffic", C: "Always-on VPN — eliminates split tunnel concerns automatically", D: "Reverse VPN — outbound only" },
+    correct: "B",
+    explanation: "Split tunneling reduces VPN/WAN load and latency for external traffic but means that traffic isn't inspected by corporate proxies/IDS.",
+    wrongHint: { letter: "A", text: "Full-tunnel forces all traffic through corporate controls; the question describes only corporate-bound traffic in the tunnel." } },
+
+  { num: 118, domain: "Domain 3.2 — SDN Controller", domainNum: 3, acronym: false, scenario: false, selectMulti: false,
+    stem: "What is the role of the controller in a Software-Defined Networking (SDN) architecture?",
+    options: { A: "Forwards every data-plane packet at line rate", B: "Centralizes the control plane and programs forwarding rules into distributed switches", C: "Replaces the need for firewalls", D: "Acts as the primary endpoint NAC" },
+    correct: "B",
+    explanation: "SDN separates control and data planes; the controller centralizes policy/topology and pushes flows down to programmable switches.",
+    wrongHint: { letter: "A", text: "Forwarding stays in the data-plane switches; the controller is a control-plane element, not a packet forwarder." } },
+
+  { num: 119, domain: "Domain 3.2 — TPM", domainNum: 3, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] What is a TPM and what does it provide?",
+    options: { A: "Trusted Platform Module — a hardware root of trust used for measured boot, key sealing, and attestation", B: "Total Process Monitor — a kernel scheduler", C: "Tamper-Proof Memory — RAM dedicated to encrypted swap", D: "Transactional Persistence Manager — a database engine" },
+    correct: "A",
+    explanation: "The TPM is a discrete or firmware chip that provides cryptographic functions, secure key storage, PCR-based measurement, and remote attestation.",
+    wrongHint: { letter: "C", text: "TPMs are not RAM; they're a tamper-resistant cryptographic processor." } },
+
+  // ---- Domain 4 expansion (+15) ----
+  { num: 120, domain: "Domain 4.5 — Patch Management", domainNum: 4, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) Critical CVE patches are released on the second Tuesday of each month. The team applies them to a staging tier first, monitors for issues, then promotes them to production within five business days. Which discipline is described?",
+    options: { A: "Continuous integration", B: "Patch management with phased rollout", C: "Configuration management database", D: "Vulnerability disclosure" },
+    correct: "B",
+    explanation: "A staged, time-bounded rollout from non-production to production is patch-management best practice.",
+    wrongHint: { letter: "A", text: "CI is a developer-pipeline practice; patch management is an IT-operations discipline." } },
+
+  { num: 121, domain: "Domain 4.4 — RTO vs RPO", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which definition pair is correct?",
+    options: { A: "RTO = maximum allowable data loss, RPO = maximum allowable downtime", B: "RTO = maximum allowable downtime to restore service, RPO = maximum allowable data loss measured in time", C: "RTO and RPO are the same metric measured differently", D: "RTO measures bandwidth, RPO measures latency" },
+    correct: "B",
+    explanation: "RTO = recovery time objective (how long until service is back). RPO = recovery point objective (how much data, by time, can be lost).",
+    wrongHint: { letter: "A", text: "The terms are flipped — RTO measures time-to-restore; RPO measures acceptable data-loss window." } },
+
+  { num: 122, domain: "Domain 4.3 — SIEM", domainNum: 4, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] What does SIEM stand for?",
+    options: { A: "Secure Intrusion Event Monitor", B: "Security Information and Event Management", C: "Signature Interception Engine Module", D: "Server Identity Endpoint Manager" },
+    correct: "B",
+    explanation: "SIEM platforms aggregate, normalize, correlate, and alert on log/telemetry data across the environment.",
+    wrongHint: { letter: "A", text: "Sounds plausible but it's not the canonical expansion." } },
+
+  { num: 123, domain: "Domain 4.3 — Log Correlation", domainNum: 4, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A SIEM raises a high-severity alert because a single source IP failed authentication 50 times across 12 distinct user accounts within 90 seconds, then succeeded once. Which capability fired the alert?",
+    options: { A: "Heuristic email filtering", B: "Cross-source log correlation", C: "Network address translation", D: "DLP fingerprinting" },
+    correct: "B",
+    explanation: "Correlating events across logs (auth + network + identity) and time windows is the SIEM's core analytic value.",
+    wrongHint: { letter: "A", text: "Email filtering targets message content, not authentication-pattern correlation." } },
+
+  { num: 124, domain: "Domain 4.4 — Chain of Custody", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "What is the PRIMARY purpose of maintaining chain of custody during a digital-forensics investigation?",
+    options: { A: "Speed up the imaging process", B: "Document who handled evidence, when, and how, so it remains admissible and trustworthy", C: "Reduce the storage required for evidence", D: "Allow remote analysts to bypass write blockers" },
+    correct: "B",
+    explanation: "Chain of custody preserves evidentiary integrity by tracking every handler and action; gaps can render evidence inadmissible.",
+    wrongHint: { letter: "A", text: "Imaging speed is unrelated to provenance documentation." } },
+
+  { num: 125, domain: "Domain 4.3 — SOAR vs SIEM", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which statement BEST distinguishes SOAR from a traditional SIEM?",
+    options: { A: "SIEM only uses signatures while SOAR only uses ML", B: "SOAR adds orchestration, automation, and case-management workflows on top of detection signals", C: "SOAR replaces firewalls", D: "There is no difference" },
+    correct: "B",
+    explanation: "SOAR (Security Orchestration, Automation, and Response) operationalizes detections into automated playbooks and analyst-assisted case work.",
+    wrongHint: { letter: "C", text: "SOAR is an automation/response layer, not a network perimeter device." } },
+
+  { num: 126, domain: "Domain 4.3 — Time Synchronization", domainNum: 4, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) Investigators correlating logs from a firewall, a domain controller, and an EDR sensor find timestamps that disagree by minutes. Which control would have prevented this?",
+    options: { A: "Anti-virus signature updates", B: "Centralized NTP time synchronization across all systems", C: "Disk encryption", D: "Egress filtering" },
+    correct: "B",
+    explanation: "NTP keeps clocks consistent so cross-system event correlation in incident response and forensics is reliable.",
+    wrongHint: { letter: "A", text: "AV signatures don't influence event timestamps." } },
+
+  { num: 127, domain: "Domain 4.5 — Application Allowlisting", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which endpoint-hardening control prevents unknown executables from running by default and only permits a curated set of binaries?",
+    options: { A: "Application allowlisting (whitelisting)", B: "Antivirus heuristic scanning", C: "DEP/NX", D: "Patch management" },
+    correct: "A",
+    explanation: "Allowlisting denies by default and only authorizes binaries on a curated list, blocking most novel malware execution.",
+    wrongHint: { letter: "B", text: "Heuristics try to detect malicious behavior in run-time, but allow unknown binaries to execute first." } },
+
+  { num: 128, domain: "Domain 4.2 — DLP", domainNum: 4, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] DLP stands for which security control?",
+    options: { A: "Distributed Logical Partitioning", B: "Data Loss Prevention", C: "Domain Lookup Provider", D: "Dynamic Latency Probe" },
+    correct: "B",
+    explanation: "DLP detects and blocks unauthorized movement of sensitive data — at endpoints, in network egress, and in cloud apps.",
+    wrongHint: { letter: "C", text: "DNS-related; not the DLP control category." } },
+
+  { num: 129, domain: "Domain 4.3 — Vulnerability Scan vs Pentest", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which statement BEST distinguishes a vulnerability scan from a penetration test?",
+    options: { A: "Pen tests are automated; vulnerability scans are manual", B: "Vulnerability scans identify likely flaws automatically; pen tests attempt to exploit and chain them to demonstrate impact", C: "They are the same activity by different names", D: "Vulnerability scans require physical access; pen tests do not" },
+    correct: "B",
+    explanation: "Scans enumerate findings (often by signature/version). Pen tests confirm exploitability and demonstrate business impact.",
+    wrongHint: { letter: "A", text: "It's the opposite — scans are largely automated; pen tests are largely human-driven." } },
+
+  { num: 130, domain: "Domain 4.5 — NAC Posture", domainNum: 4, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) Before a corporate laptop is allowed onto the production VLAN, the access switch checks that the OS is patched, full-disk encryption is on, and the EDR agent is current. Which control is being enforced?",
+    options: { A: "Deep packet inspection", B: "Network Access Control (NAC) posture assessment", C: "DDoS protection", D: "Web Application Firewall" },
+    correct: "B",
+    explanation: "NAC (often 802.1X-based) gates network admission on identity AND endpoint posture/health checks.",
+    wrongHint: { letter: "A", text: "DPI inspects payloads in transit; it doesn't gate admission on posture." } },
+
+  { num: 131, domain: "Domain 4.4 — Backup 3-2-1", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "What does the backup '3-2-1 rule' specify?",
+    options: { A: "Three full backups per week, two incremental, one synthetic", B: "Three copies of data, on two different media types, with one copy offsite (or offline/immutable)", C: "Three RAID disks plus one spare in two arrays", D: "Three days of retention, two snapshots per day, one weekly archive" },
+    correct: "B",
+    explanation: "3-2-1 = three copies, on two media, with one offsite/offline (modernly often expanded to 3-2-1-1-0 for immutability and verification).",
+    wrongHint: { letter: "A", text: "Backup cadence is operational; the 3-2-1 rule describes copies, media, and location diversity." } },
+
+  { num: 132, domain: "Domain 4.6 — PAM", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which control vaults privileged credentials, brokers session access, and records what privileged users do?",
+    options: { A: "Single sign-on (SSO)", B: "Privileged Access Management (PAM)", C: "Mobile Device Management (MDM)", D: "Network Time Protocol (NTP)" },
+    correct: "B",
+    explanation: "PAM solutions vault, rotate, and broker privileged credentials, and record privileged sessions for accountability.",
+    wrongHint: { letter: "A", text: "SSO simplifies regular user login but does not vault and broker privileged credentials specifically." } },
+
+  { num: 133, domain: "Domain 4.4 — IR Containment", domainNum: 4, acronym: false, scenario: true, selectMulti: true,
+    stem: "[SELECT TWO] (Scenario) During the containment phase of an active intrusion, which actions are BEST aligned with that phase?",
+    options: { A: "Disconnect the affected hosts from the network or move them to a quarantine VLAN", B: "Re-image and return systems to production", C: "Block the attacker's command-and-control IPs at the edge", D: "Hold a lessons-learned meeting", E: "Author new awareness-training content" },
+    correct: ["A", "C"],
+    explanation: "Containment limits the spread (host quarantine, blocking C2). Re-imaging is eradication/recovery; lessons-learned and training updates come later.",
+    wrongHint: { letter: "B", text: "Re-imaging is part of eradication/recovery, not containment." } },
+
+  { num: 134, domain: "Domain 4.5 — Hardening Baselines", domainNum: 4, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which artifact provides a vendor-agnostic, prescriptive set of secure configuration settings widely used to harden endpoints and servers?",
+    options: { A: "An RFC", B: "A CIS Benchmark", C: "A CVE record", D: "An MSA" },
+    correct: "B",
+    explanation: "CIS Benchmarks publish consensus-driven secure-configuration guidance for OSes, cloud providers, and applications.",
+    wrongHint: { letter: "A", text: "RFCs define protocols; they aren't hardening baselines per se." } },
+
+  // ---- Domain 5 expansion (+11) ----
+  { num: 135, domain: "Domain 5.1 — GDPR", domainNum: 5, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which statement about GDPR is MOST accurate?",
+    options: { A: "Applies only to organizations physically located in the EU", B: "Applies to any organization that processes personal data of individuals in the EU/EEA, regardless of organization location", C: "Applies only to credit-card data", D: "Has no enforcement provisions" },
+    correct: "B",
+    explanation: "GDPR has extraterritorial scope: any controller/processor handling EU/EEA data subjects' personal data is in scope.",
+    wrongHint: { letter: "C", text: "PCI DSS targets cardholder data. GDPR is broader privacy regulation for personal data." } },
+
+  { num: 136, domain: "Domain 5.3 — SOC 2 vs ISO 27001", domainNum: 5, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which BEST distinguishes SOC 2 from ISO/IEC 27001?",
+    options: { A: "SOC 2 is a certification; ISO 27001 is an attestation", B: "SOC 2 is an AICPA attestation report on Trust Services Criteria; ISO/IEC 27001 is an international ISMS certification", C: "They are the same standard", D: "ISO 27001 covers only payment data; SOC 2 covers everything else" },
+    correct: "B",
+    explanation: "SOC 2 (Type I/II) reports are AICPA attestations against the Trust Services Criteria. ISO 27001 is an international certification of an Information Security Management System.",
+    wrongHint: { letter: "A", text: "It's reversed — SOC 2 is an attestation report; ISO 27001 is a certification." } },
+
+  { num: 137, domain: "Domain 5.2 — Risk Register", domainNum: 5, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which item is LEAST likely to appear in a well-formed risk register entry?",
+    options: { A: "Risk description and threat source", B: "Likelihood and impact ratings", C: "Risk owner and treatment decision", D: "Detailed firewall rule numbers" },
+    correct: "D",
+    explanation: "Risk registers track risk metadata (description, likelihood/impact, owner, treatment, status). Specific firewall-rule line numbers belong in configuration documentation.",
+    wrongHint: { letter: "A", text: "Description and threat source are core fields of any risk register." } },
+
+  { num: 138, domain: "Domain 5.2 — ALE Calculation", domainNum: 5, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) A laptop loss costs $4,000 (SLE). The organization expects two such losses per year (ARO = 2). What is the Annualized Loss Expectancy (ALE)?",
+    options: { A: "$2,000", B: "$4,000", C: "$6,000", D: "$8,000" },
+    correct: "D",
+    explanation: "ALE = SLE × ARO = $4,000 × 2 = $8,000.",
+    wrongHint: { letter: "C", text: "$6,000 is SLE × 1.5; the formula is SLE × ARO with ARO = 2." } },
+
+  { num: 139, domain: "Domain 5.4 — BCP", domainNum: 5, acronym: true, scenario: false, selectMulti: false,
+    stem: "[ACRONYM] In continuity planning, BCP stands for:",
+    options: { A: "Backup Configuration Protocol", B: "Business Continuity Plan", C: "Boundary Control Process", D: "Baseline Compliance Program" },
+    correct: "B",
+    explanation: "A Business Continuity Plan documents how the organization maintains essential functions during and after a disruption.",
+    wrongHint: { letter: "A", text: "Sounds technical but BCP is the continuity-planning artifact." } },
+
+  { num: 140, domain: "Domain 5.4 — BIA vs DR", domainNum: 5, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which statement BEST distinguishes a Business Impact Analysis (BIA) from a Disaster Recovery (DR) plan?",
+    options: { A: "BIA is a runbook; DR is a budget document", B: "BIA identifies critical processes and impact thresholds (RTO/RPO); the DR plan documents how to restore the IT systems supporting them", C: "They are the same artifact", D: "BIA only covers cyber attacks; DR covers natural disasters" },
+    correct: "B",
+    explanation: "The BIA quantifies impact and feeds RTO/RPO targets; the DR plan operationalizes recovery procedures for those targets.",
+    wrongHint: { letter: "A", text: "BIA is analysis; DR plan is the operational playbook informed by it." } },
+
+  { num: 141, domain: "Domain 5.3 — Vendor Due Diligence", domainNum: 5, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) Before signing with a payroll-processing vendor, the security team requests the vendor's SOC 2 Type II report, sub-processor list, and incident-response procedures. Which activity is this?",
+    options: { A: "Penetration testing", B: "Vendor / third-party due diligence", C: "Supply-chain attack", D: "Threat-model brainstorming" },
+    correct: "B",
+    explanation: "Reviewing a vendor's controls (SOC 2, sub-processors, IR posture) prior to contracting is third-party due diligence.",
+    wrongHint: { letter: "C", text: "Supply-chain attack is the threat being mitigated by due diligence; not the activity itself." } },
+
+  { num: 142, domain: "Domain 5.3 — SLA", domainNum: 5, acronym: false, scenario: false, selectMulti: false,
+    stem: "What is the PRIMARY purpose of an SLA between a customer and a service provider?",
+    options: { A: "Document the vendor's tax obligations", B: "Codify measurable service performance commitments and consequences when targets are missed", C: "Replace the master services agreement", D: "Hide vendor pricing from auditors" },
+    correct: "B",
+    explanation: "SLAs define availability, response-time, and other measurable commitments along with remedies (credits, penalties) for breaches.",
+    wrongHint: { letter: "A", text: "Tax terms typically live elsewhere in commercial contracts." } },
+
+  { num: 143, domain: "Domain 5.1 — Data Classification", domainNum: 5, acronym: false, scenario: false, selectMulti: false,
+    stem: "Which dataset would MOST appropriately be labeled 'Restricted / PHI' under typical healthcare data classification?",
+    options: { A: "Aggregated, de-identified hospital occupancy stats published quarterly", B: "Marketing-team blog drafts", C: "Patient diagnoses, treatment notes, and identifiers tied to individuals", D: "Public board-of-directors bios" },
+    correct: "C",
+    explanation: "PHI (Protected Health Information) includes individually identifiable health data — diagnoses, treatments, etc. — under HIPAA.",
+    wrongHint: { letter: "A", text: "Properly de-identified, aggregated stats are typically not PHI." } },
+
+  { num: 144, domain: "Domain 5.2 — Risk Treatment", domainNum: 5, acronym: false, scenario: false, selectMulti: true,
+    stem: "[SELECT TWO] Which actions are valid risk-treatment strategies under standard frameworks?",
+    options: { A: "Mitigation (apply controls to reduce likelihood/impact)", B: "Transference (shift the financial exposure to another party, e.g., insurance)", C: "Forgetting (delete the risk register entry)", D: "Stalling (hope leadership doesn't notice)", E: "Promotion (escalate the risk to a peer org)" },
+    correct: ["A", "B"],
+    explanation: "The four classic treatment strategies are Mitigate, Transfer, Avoid, and Accept. 'Forget' and 'stall' are not legitimate strategies; 'promotion' isn't a recognized treatment.",
+    wrongHint: { letter: "C", text: "Deleting the risk doesn't make it go away; that's not risk acceptance, it's negligence." } },
+
+  { num: 145, domain: "Domain 5.5 — Awareness Training", domainNum: 5, acronym: false, scenario: true, selectMulti: false,
+    stem: "(Scenario) After a successful phishing simulation, training is reinforced for the users who clicked, with follow-up phishing tests scheduled monthly. Which security-program element does this BEST illustrate?",
+    options: { A: "Penetration testing", B: "Continuous awareness/training reinforcement loop", C: "Disaster-recovery testing", D: "Forensic readiness" },
+    correct: "B",
+    explanation: "Targeted reinforcement and recurring simulations are the hallmark of an effective security awareness program.",
+    wrongHint: { letter: "A", text: "Pen tests target systems; this is user-behavior training." } }
 ];
 
 // =============================================================================
@@ -848,5 +1244,76 @@ window.PBQ_DATA = [
       { id: "s7", label: "Customer data classification & encryption keys (BYOK)", correct: "Customer" }
     ],
     explanation: "In IaaS the provider secures everything up to the hypervisor; the customer secures the guest OS and above (OS patches, app code, IAM, data, encryption keys). Provider 'security OF the cloud,' customer 'security IN the cloud.'"
+  },
+
+  {
+    pbqId: "pbq-acronyms",
+    pbq: true,
+    title: "PBQ — Match Acronym to Definition",
+    domain: "Domain 1.4 / 4.x — Security Acronyms",
+    domainNum: 4,
+    prompt: "Assign each SY0-701 security acronym to its correct expansion.",
+    categories: [
+      "Security Information and Event Management",
+      "Endpoint Detection and Response",
+      "Cloud Access Security Broker",
+      "Privileged Access Management",
+      "Data Loss Prevention",
+      "Trusted Platform Module"
+    ],
+    items: [
+      { id: "ac1", label: "SIEM", correct: "Security Information and Event Management" },
+      { id: "ac2", label: "EDR",  correct: "Endpoint Detection and Response" },
+      { id: "ac3", label: "CASB", correct: "Cloud Access Security Broker" },
+      { id: "ac4", label: "PAM",  correct: "Privileged Access Management" },
+      { id: "ac5", label: "DLP",  correct: "Data Loss Prevention" },
+      { id: "ac6", label: "TPM",  correct: "Trusted Platform Module" }
+    ],
+    explanation: "These are common SY0-701 acronyms. SIEM aggregates and correlates logs; EDR monitors endpoints; CASB brokers cloud-app access; PAM vaults privileged credentials; DLP prevents unauthorized data movement; TPM is a hardware root of trust."
+  },
+
+  {
+    pbqId: "pbq-crypto-use-case",
+    pbq: true,
+    title: "PBQ — Match Crypto Primitive to Use Case",
+    domain: "Domain 1.4 — Cryptography",
+    domainNum: 1,
+    prompt: "Assign each cryptographic primitive to its BEST-fit use case.",
+    categories: [
+      "Encrypt/decrypt large data with a shared key",
+      "Establish a shared key between two parties without prior secret",
+      "Sign a document so the signer cannot deny it",
+      "Verify a downloaded file has not been altered",
+      "Authenticate a TLS server's identity",
+      "Strengthen passwords against offline cracking"
+    ],
+    items: [
+      { id: "cu1", label: "AES-256-GCM (symmetric cipher)",                correct: "Encrypt/decrypt large data with a shared key" },
+      { id: "cu2", label: "Diffie–Hellman / ECDHE",                         correct: "Establish a shared key between two parties without prior secret" },
+      { id: "cu3", label: "RSA / ECDSA digital signature",                  correct: "Sign a document so the signer cannot deny it" },
+      { id: "cu4", label: "SHA-256 hash",                                   correct: "Verify a downloaded file has not been altered" },
+      { id: "cu5", label: "X.509 certificate signed by a trusted CA",       correct: "Authenticate a TLS server's identity" },
+      { id: "cu6", label: "bcrypt / Argon2 (password KDF)",                 correct: "Strengthen passwords against offline cracking" }
+    ],
+    explanation: "Symmetric ciphers (AES) protect bulk data; (EC)DHE establishes a shared key over an untrusted channel; signatures provide non-repudiation; hashes provide integrity; certificate validation authenticates the server; password-hashing KDFs (bcrypt/Argon2) slow down offline cracking."
+  },
+
+  {
+    pbqId: "pbq-attack-osi-layer",
+    pbq: true,
+    title: "PBQ — Map Attack to OSI Layer",
+    domain: "Domain 2.4 / 3.2 — Attacks & Network Architecture",
+    domainNum: 3,
+    prompt: "For each attack, choose the OSI layer where the technique PRIMARILY operates.",
+    categories: ["Layer 2 (Data link)", "Layer 3 (Network)", "Layer 4 (Transport)", "Layer 7 (Application)"],
+    items: [
+      { id: "ol1", label: "ARP poisoning / spoofing",          correct: "Layer 2 (Data link)" },
+      { id: "ol2", label: "MAC flooding of a switch CAM table", correct: "Layer 2 (Data link)" },
+      { id: "ol3", label: "ICMP smurf / IP spoofing",          correct: "Layer 3 (Network)" },
+      { id: "ol4", label: "TCP SYN flood",                      correct: "Layer 4 (Transport)" },
+      { id: "ol5", label: "SQL injection",                      correct: "Layer 7 (Application)" },
+      { id: "ol6", label: "Cross-site scripting (XSS)",         correct: "Layer 7 (Application)" }
+    ],
+    explanation: "ARP and MAC attacks live at L2; ICMP and IP-spoofing techniques are L3; SYN flood targets the L4 TCP handshake; SQLi and XSS abuse application-layer (L7) inputs and output rendering."
   }
 ];

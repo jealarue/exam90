@@ -21,16 +21,25 @@ Dark-themed, browser-based practice exam for CompTIA Security+ SY0-701 certifica
 
 ### Domain-weighted question pool
 
-90 questions matching the official SY0-701 blueprint:
+The pool now contains **145 MCQs + 12 PBQs**, each tagged with its SY0-701
+objective. The original 90 MCQs (Q1–Q90) form a complete domain-weighted exam
+on their own; questions Q91–Q145 are pool-expansion items (variations and
+additional angles on the same objectives) that preserve the official
+SY0-701 weighting:
 
-| Domain | Topic                                          | Questions | Weight |
-|--------|------------------------------------------------|-----------|--------|
-| 1      | General Security Concepts                      | 11        | 12%    |
-| 2      | Threats, Vulnerabilities & Mitigations         | 20        | 22%    |
-| 3      | Security Architecture                          | 16        | 18%    |
-| 4      | Security Operations                            | 25        | 28%    |
-| 5      | Security Program Management & Oversight        | 18        | 20%    |
-| **Total** |                                             | **90**    | 100%   |
+| Domain | Topic                                          | Q1–90 | Q91–145 | Total | Weight (orig) |
+|--------|------------------------------------------------|-------|---------|-------|----------------|
+| 1      | General Security Concepts                      | 11    | 7       | 18    | 12%            |
+| 2      | Threats, Vulnerabilities & Mitigations         | 20    | 12      | 32    | 22%            |
+| 3      | Security Architecture                          | 16    | 10      | 26    | 18%            |
+| 4      | Security Operations                            | 25    | 15      | 40    | 28%            |
+| 5      | Security Program Management & Oversight        | 18    | 11      | 29    | 20%            |
+| **Total** |                                             | **90** | **55** | **145** | 100%       |
+
+A 90-question random run draws from the full 145-question pool every time, so
+back-to-back attempts share roughly **62%** of questions on average — meaning
+about a third of every exam is fresh. PBQ pool grew from 9 to **12** so PBQ
+draws also rotate.
 
 ### Dynamic exam configuration
 
