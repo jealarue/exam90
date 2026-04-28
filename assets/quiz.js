@@ -61,7 +61,8 @@
     pbqPercentMode:  "10",     // dropdown value: "0"|"10"|"20"|"30"|"custom"
     pbqCustomPercent: 10,      // last typed custom %
     poolMode:        "all",    // "all" | "random"
-    poolSize:        30        // when poolMode === "random"
+    poolSize:        30,       // when poolMode === "random"
+    domainFilter:    "all"     // "all" | "1"|"2"|"3"|"4"|"5" | "acronym" | "scenario"
   };
 
   // ===================================================================
@@ -89,8 +90,13 @@
   const pbqCustomEl     = $("pbqCustom");
   const pbqMaxNote      = $("pbqMaxNote");
   const pbqInfoEl       = $("pbqInfo");
+  const startDomainFilterEl = $("startDomainFilter");
+  const domainInfoEl    = $("domainInfo");
   const poolSizeRow     = $("poolSizeRow");
   const poolSizeEl      = $("poolSize");
+  const poolModeOptions = $("poolModeOptions");
+  const poolModeInfo    = $("poolModeInfo");
+  const poolModeInfoText = $("poolModeInfoText");
   const configSummary   = $("configSummary");
 
   // Exam screen
@@ -101,7 +107,6 @@
   const scorePill    = $("scorePill");
   const resetBtn     = $("resetBtn");
   const failLogBtn   = $("exportFailLogBtn");
-  const filterEl     = $("domainFilter");
   const scoringNote  = $("scoringNote");
 
   // Timer DOM (sticky)
@@ -137,10 +142,8 @@
     const maxPbqs = pbqDataLength();
     if (pbqMaxNote) pbqMaxNote.textContent = "/ " + maxPbqs + " PBQs available";
 
-    // Pool-mode toggle (random subset row visibility)
-    const mcqAvailable = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
-    const poolUpperBound = Math.max(5, Math.min(POOL_MAX, mcqAvailable));
-    if (poolSizeEl) poolSizeEl.max = String(poolUpperBound);
+    // Initialize pool size max based on domain filter
+    updatePoolSizeMax();
 
     document.querySelectorAll('input[name="poolMode"]').forEach((r) => {
       r.addEventListener("change", () => {
@@ -148,13 +151,13 @@
         if (poolSizeRow) {
           poolSizeRow.style.display = examSettings.poolMode === "random" ? "flex" : "none";
         }
-        examSettings.poolSize = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, poolUpperBound);
+        examSettings.poolSize = parseInt(poolSizeEl.value, 10) || 30;
         renderConfigSummary();
       });
     });
     if (poolSizeEl) {
-      poolSizeEl.addEventListener("input", () => {
-        examSettings.poolSize = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, poolUpperBound);
+      poolSizeEl.addEventListener("change", () => {
+        examSettings.poolSize = parseInt(poolSizeEl.value, 10) || 30;
         renderConfigSummary();
       });
     }
@@ -184,6 +187,15 @@
           timerMinutesEl.value = String(safe);
         }
         renderTimerLabel();
+        renderConfigSummary();
+      });
+    }
+
+    // Domain filter (start screen)
+    if (startDomainFilterEl) {
+      startDomainFilterEl.addEventListener("change", () => {
+        examSettings.domainFilter = startDomainFilterEl.value;
+        updatePoolSizeMax();
         renderConfigSummary();
       });
     }
@@ -238,10 +250,6 @@
     // Exam-screen wiring
     resetBtn.addEventListener("click", onResetExam);
     if (failLogBtn) failLogBtn.addEventListener("click", () => exportMissesAs("log"));
-    filterEl.addEventListener("change", () => {
-      render();
-      window.scrollTo({ top: quizEl.offsetTop - 120, behavior: "smooth" });
-    });
 
     tStart.addEventListener("click", startTimer);
     tPause.addEventListener("click", pauseTimer);
@@ -274,14 +282,125 @@
     return Math.max(0, Math.min(100, n));
   }
 
+  function countAvailableQuestions(domainVal) {
+    const mcqsAll = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA : [];
+    const pbqsAll = Array.isArray(window.PBQ_DATA) ? window.PBQ_DATA : [];
+
+    if (domainVal === "all") {
+      return mcqsAll.length + pbqsAll.length;
+    }
+
+    let count = 0;
+    if (domainVal === "acronym") {
+      count = mcqsAll.filter((q) => q.acronym).length;
+    } else if (domainVal === "scenario") {
+      count = mcqsAll.filter((q) => q.scenario).length;
+    } else {
+      const dn = parseInt(domainVal, 10);
+      if (!isNaN(dn)) {
+        count = mcqsAll.filter((q) => q.domainNum === dn).length;
+        // Add PBQs from this domain
+        count += pbqsAll.filter((p) => p.domainNum === dn).length;
+      }
+    }
+    return count;
+  }
+
+  function updatePoolSizeMax() {
+    const available = countAvailableQuestions(examSettings.domainFilter);
+    const isAllDomains = examSettings.domainFilter === "all";
+
+    // Update domain info text
+    if (domainInfoEl) {
+      if (isAllDomains) {
+        domainInfoEl.textContent = "All domains selected. " + available + " questions available.";
+      } else {
+        const domainName = DOMAIN_NAMES[examSettings.domainFilter] || examSettings.domainFilter;
+        domainInfoEl.textContent = domainName + " selected. " + available + " questions available.";
+      }
+    }
+
+    // Show/hide pool mode options based on domain
+    if (poolModeOptions && poolModeInfo) {
+      if (isAllDomains) {
+        // All domains: show radio options
+        poolModeOptions.style.display = "block";
+        poolModeInfo.style.display = "none";
+
+        const allRadio = document.querySelector('input[name="poolMode"][value="all"]');
+        const randomRadio = document.querySelector('input[name="poolMode"][value="random"]');
+        if (allRadio && randomRadio) {
+          allRadio.disabled = false;
+          randomRadio.disabled = false;
+          // Show pool size row if random mode is selected
+          if (examSettings.poolMode === "random" && poolSizeRow) {
+            poolSizeRow.style.display = "flex";
+          }
+        }
+      } else {
+        // Specific domain: show info message instead
+        poolModeOptions.style.display = "none";
+        poolModeInfo.style.display = "block";
+
+        const domainName = DOMAIN_NAMES[examSettings.domainFilter] || examSettings.domainFilter;
+        if (poolModeInfoText) {
+          poolModeInfoText.textContent = domainName + " has " + available + " questions — your exam will have " + available + " questions.";
+        }
+
+        // Force full exam mode
+        examSettings.poolMode = "all";
+        if (poolSizeRow) poolSizeRow.style.display = "none";
+      }
+    }
+
+    // Update dropdown options based on available questions
+    if (poolSizeEl) {
+      const options = poolSizeEl.querySelectorAll("option");
+      options.forEach((opt) => {
+        const optVal = parseInt(opt.value, 10);
+        if (optVal > available) {
+          opt.disabled = true;
+        } else {
+          opt.disabled = false;
+        }
+      });
+
+      // If current value is disabled, pick the highest enabled option
+      const currentVal = parseInt(poolSizeEl.value, 10);
+      if (currentVal > available) {
+        let selected = false;
+        // Find highest enabled option
+        for (let i = options.length - 1; i >= 0; i--) {
+          if (!options[i].disabled) {
+            poolSizeEl.value = options[i].value;
+            examSettings.poolSize = parseInt(options[i].value, 10);
+            selected = true;
+            break;
+          }
+        }
+        if (!selected) {
+          poolSizeEl.value = "30"; // fallback
+          examSettings.poolSize = 30;
+        }
+      }
+    }
+  }
+
   function totalTargetQuestions() {
     // Total exam length. PBQ count is a percentage of this; MCQs fill the rest.
-    //   - "all"    => fixed-size full exam (EXAM_TOTAL_DEFAULT, e.g. 90)
+    //   - "all"    => fixed-size full exam (EXAM_TOTAL_DEFAULT for all domains, or all available for specific domain)
     //   - "random" => user-chosen subset, clamped to the pool size
     if (examSettings.poolMode === "random") {
-      const mcqAvailable = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
-      return clamp(examSettings.poolSize, 5, Math.max(5, mcqAvailable));
+      return clamp(examSettings.poolSize, 5, 90);
     }
+
+    // Full exam mode
+    if (examSettings.domainFilter !== "all") {
+      // Specific domain: return all available in that domain
+      return countAvailableQuestions(examSettings.domainFilter);
+    }
+
+    // All domains: return standard 90
     return EXAM_TOTAL_DEFAULT;
   }
 
@@ -341,12 +460,11 @@
 
   function onStartExam() {
     // Re-read all Dynamic_Options() values into examSettings
-    const mcqAvailable = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
-    const poolUpperBound = Math.max(5, Math.min(POOL_MAX, mcqAvailable));
+    examSettings.domainFilter    = startDomainFilterEl.value;
 
     examSettings.attemptsAllowed = parseInt(pickedValue("attemptsMode"), 10);
     examSettings.poolMode        = pickedValue("poolMode");
-    examSettings.poolSize        = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, poolUpperBound);
+    examSettings.poolSize        = parseInt(poolSizeEl.value, 10) || 30;
     examSettings.pbqMode         = pickedValue("pbqMode");
     examSettings.includePBQs     = examSettings.pbqMode === "on";
 
@@ -443,11 +561,29 @@
     pool = [];
     let warning = "";
 
+    // Filter questions by domain before building pool
+    let pbqsAll = Array.isArray(window.PBQ_DATA)  ? window.PBQ_DATA.slice()  : [];
+    let mcqsAll = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.slice() : [];
+
+    // Apply domain filter
+    if (examSettings.domainFilter !== "all") {
+      if (examSettings.domainFilter === "acronym") {
+        mcqsAll = mcqsAll.filter((q) => q.acronym);
+      } else if (examSettings.domainFilter === "scenario") {
+        mcqsAll = mcqsAll.filter((q) => q.scenario);
+      } else {
+        const dn = parseInt(examSettings.domainFilter, 10);
+        if (!isNaN(dn)) {
+          mcqsAll = mcqsAll.filter((q) => q.domainNum === dn);
+          pbqsAll = pbqsAll.filter((p) => p.domainNum === dn);
+        }
+      }
+    }
+
     // Total exam size — PBQs REPLACE MCQs in this slot count, they do not
     // inflate it. So: 90 total + 10% PBQs => 9 PBQs + 81 MCQs (= 90), not 99.
     const total   = totalTargetQuestions();
-    const pbqsAll = Array.isArray(window.PBQ_DATA)  ? window.PBQ_DATA.slice()  : [];
-    const mcqsAll = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.slice() : [];
+
 
     // PBQ slice (capped by what's available)
     let pbqsToUse = [];
@@ -521,27 +657,8 @@
   // ===================================================================
 
   function getFilteredPool() {
-    const f = filterEl.value;
-    if (f === "all") return pool;
-    if (f === "incorrect") {
-      return pool.filter((e) => {
-        const s = state[e.uid];
-        if (!s) return false;
-        if (s.resolved && s.score === 0) return true;
-        if (e.kind === "mcq" && s.wrongPicks.length > 0) return true;
-        if (e.kind === "pbq" && s.wrongItems && s.wrongItems.size > 0) return true;
-        return false;
-      });
-    }
-    if (f === "acronym")
-      return pool.filter((e) => e.kind === "mcq" && e.q.acronym);
-    if (f === "scenario")
-      return pool.filter((e) => e.kind === "mcq" && e.q.scenario);
-    if (f === "pbq")
-      return pool.filter((e) => e.kind === "pbq");
-    const dn = parseInt(f, 10);
-    if (!isNaN(dn))
-      return pool.filter((e) => e.q.domainNum === dn);
+    // Domain filtering now happens at build time (start screen)
+    // Return the full pool since it's already filtered by domain
     return pool;
   }
 

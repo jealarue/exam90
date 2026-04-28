@@ -92,21 +92,49 @@
           </p>
         </fieldset>
 
+        <!-- ---- Domain filter ---- -->
+        <fieldset class="config-card" id="cardDomain">
+          <legend>Domain focus</legend>
+          <label class="num-row">
+            <span>Select domain:</span>
+            <select id="startDomainFilter" aria-label="Domain focus">
+              <option value="all">All domains</option>
+              <option value="1">Domain 1 — General Concepts</option>
+              <option value="2">Domain 2 — Threats &amp; Vulns</option>
+              <option value="3">Domain 3 — Architecture</option>
+              <option value="4">Domain 4 — Operations</option>
+              <option value="5">Domain 5 — Program Mgmt</option>
+              <option value="acronym">Acronym Questions Only</option>
+              <option value="scenario">Scenario Questions Only</option>
+            </select>
+          </label>
+          <p class="config-help" id="domainInfo">All domains selected. Pool size will adjust based on domain.</p>
+        </fieldset>
+
         <!-- ---- Question pool ---- -->
         <fieldset class="config-card" id="cardPool">
           <legend>Question pool</legend>
-          <label class="radio-row">
-            <input type="radio" name="poolMode" value="all" checked />
-            <span><strong>Full 90-question exam</strong> &mdash; matches the real SY0-701 length, drawn randomly from the full pool</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="poolMode" value="random" />
-            <span><strong>Random subset</strong> &mdash; pick your own exam size</span>
-          </label>
-          <label class="num-row indent" id="poolSizeRow" style="display:none;">
-            <span>How many questions:</span>
-            <input type="number" id="poolSize" min="5" max="145" value="30" />
-          </label>
+          <div id="poolModeOptions">
+            <label class="radio-row">
+              <input type="radio" name="poolMode" value="all" checked />
+              <span><strong>Full exam</strong> &mdash; matches the real SY0-701 length, drawn randomly from the full pool</span>
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="poolMode" value="random" />
+              <span><strong>Random subset</strong> &mdash; pick your own exam size</span>
+            </label>
+            <label class="num-row indent" id="poolSizeRow" style="display:none;">
+              <span>How many questions:</span>
+              <select id="poolSize">
+                <option value="30">30 questions</option>
+                <option value="60">60 questions</option>
+                <option value="90">90 questions</option>
+              </select>
+            </label>
+          </div>
+          <div id="poolModeInfo" style="display:none;">
+            <p id="poolModeInfoText"></p>
+          </div>
         </fieldset>
       </div>
 
@@ -148,21 +176,6 @@
               <button class="btn-mini" id="timerPause" type="button" disabled aria-label="Pause timer">Pause</button>
               <button class="btn-mini ghost" id="timerReset" type="button" aria-label="Reset exam">Reset</button>
             </div>
-          </div>
-          <div class="filter-box compact">
-            <label for="domainFilter">Filter</label>
-            <select id="domainFilter">
-              <option value="all">All questions</option>
-              <option value="1">Domain 1 — General Concepts</option>
-              <option value="2">Domain 2 — Threats &amp; Vulns</option>
-              <option value="3">Domain 3 — Architecture</option>
-              <option value="4">Domain 4 — Operations</option>
-              <option value="5">Domain 5 — Program Mgmt</option>
-              <option value="acronym">Acronym only</option>
-              <option value="scenario">Scenario only</option>
-              <option value="pbq">PBQs only</option>
-              <option value="incorrect">Missed only</option>
-            </select>
           </div>
           <div class="sticky-progress">
             <div class="progress-text" id="progressText">0 / 0 answered</div>
