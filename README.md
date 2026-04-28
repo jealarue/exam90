@@ -1,35 +1,27 @@
-# CompTIA Security+ SY0-701 — Interactive Practice Exams
+# CompTIA Security+ (SY0-701) Interactive Practice Exam
 
-Dark-themed, browser-based practice exams for the CompTIA Security+ SY0-701
-certification. Pure HTML / CSS / vanilla JavaScript — no build step, no server,
-no external dependencies, no tracking, no network calls. Open `index.html` in a
-browser and study.
+Dark-themed, browser-based practice exam for CompTIA Security+ SY0-701 certification. Pure HTML / CSS / vanilla JavaScript — no build step, no server, no external dependencies, no tracking, no network calls. Open `index.html` in a browser and study.
 
-## What's in this repo
+## Quick Start
 
-Three study artifacts in one place:
+1. Open `index.html` in a modern browser
+2. Configure your exam settings (attempt mode, timer, question pool, PBQ percentage)
+3. Click **Start Exam** and begin
 
-1. **50-question scenario quiz** — original interactive app at the repo root
-   (`index.html` + `assets/`).
-2. **90-question full practice exam — interactive web app** — the headline
-   app, under `exam90/`. Domain-weighted to the official SY0-701 blueprint
-   with a 90-minute exam timer, domain filter, multi-select support, and a
-   per-domain results breakdown.
-3. **90-question practice exam — printable markdown** — the same 90 questions
-   as the web app, rendered as a static document for paper / PDF study:
-   `SY0-701_Practice_Exam_2026-04-26.md`.
+## What's included
 
-All practice questions are original study aids written to mirror the public
-SY0-701 exam blueprint and difficulty calibration. No live exam content is
-reproduced.
+| File | Purpose |
+|------|---------|
+| `index.html` | Main app interface & control flow |
+| `assets/quiz.js` | Exam logic, timer, scoring, localStorage management |
+| `assets/quiz-data.js` | 90 practice questions with domain tagging & explanations |
+| `assets/styles.css` | Dark-themed UI (no external stylesheets) |
 
-## Features (90-question app)
-
-Located at `exam90/index.html`.
+## Features
 
 ### Domain-weighted question pool
 
-Matching the official SY0-701 blueprint:
+90 questions matching the official SY0-701 blueprint:
 
 | Domain | Topic                                          | Questions | Weight |
 |--------|------------------------------------------------|-----------|--------|
@@ -40,200 +32,122 @@ Matching the official SY0-701 blueprint:
 | 5      | Security Program Management & Oversight        | 18        | 20%    |
 | **Total** |                                             | **90**    | 100%   |
 
-### Dynamic Options (pre-exam setup)
+### Dynamic exam configuration
 
-The first screen is `Dynamic_Options()` — a configuration panel where you set
-the rules of the practice run before the timer starts. All choices live in a
-single `examSettings` state object so nothing is hard-coded.
+Before the timer starts, configure your practice run:
 
-- **Exam mode** — `1 chance per question` (a wrong answer immediately resolves
-  the question as failed) or `2 chances per question` (partial credit: 1.0
-  first try, 0.5 second try, 0 if both wrong).
-- **Set timer** — choose from `30 / 45 / 60 / 75 / 90` minutes. Allowed range
-  is **30–90 minutes**. The default depends on exam mode: **90 min** for
-  2-chance mode (full exam), **60 min** for 1-chance mode (faster realistic
-  drill). Switching modes auto-snaps the timer to the matching default; you
-  can still override within the 30–90 range.
-- **Include PBQs: On / Off** — turn matching-style PBQs on or off for the run.
-- **PBQ percentage** — when PBQs are on, pick `0% / 10% / 20% / 30% / Custom %`.
-  The app calculates how many PBQ questions to include based on the total
-  number of questions selected (e.g., 90 questions × 10% ≈ 9 PBQs). If the
-  requested percentage exceeds the number of PBQ-tagged questions available,
-  all available PBQs are used and a clear warning is shown.
-- **Question pool** — `All 90 MCQs` (full domain-weighted exam) or a
-  `Random subset` of N MCQs. PBQs are selected **before** regular MCQs when
-  building the exam.
-- **Live config summary** — pills under the form show the exact mode, timer,
-  PBQ count, and pool currently selected, so you can confirm the configuration
-  before Start.
+- **Exam mode**: `1 chance per question` (exam-realistic, fail on first wrong) or `2 chances` (partial credit: 1.0 first attempt, 0.5 second, 0 if both wrong)
+- **Timer**: 30–90 minutes (default: 90 min for 2-chance, 60 min for 1-chance)
+- **Question pool**: All 90 MCQs or a random subset
+- **PBQs**: On/Off toggle with percentage (0%, 10%, 20%, 30%, or custom)
+- **Live summary**: Real-time config pills show your exact mode, timer, PBQ count, and pool before start
 
-### Sticky timer + controls
+### Question variety
 
-The timer box is `position: sticky` at the top of the exam screen on desktop
-**and** mobile, so Start, Pause, and Reset are always reachable while
-scrolling. The timer never covers question text or answer choices. Display
-turns amber at ≤ 10 minutes and red & pulsing at expiry.
+- **15 acronym questions** (ZTNA, CRL, APT, CVSS, IOC, NGFW, SDN, RPO, SOAR, PAM, EDR, STIX, PII, PHI, NDA)
+- **19 scenario-based questions** with realistic SOC analyst, architect, IR, and CISO framing
+- **`[SELECT TWO]`** multi-select support with live "select N more" hints
+- **Domain filter**: Drill by domain or filter to Acronym-only, Scenario-only, PBQ-only, or Missed-only views
 
-### 15 acronym + 19 scenario MCQs
+### Sticky timer & controls
 
-15 acronym questions distributed across all five domains (ZTNA, CRL, APT,
-CVSS, IOC, NGFW, SDN, RPO, SOAR, PAM, EDR, STIX, PII, PHI, NDA) plus 19
-scenario-based questions with realistic SOC analyst, security architect, IR,
-and CISO framing.
+Timer box is always reachable while scrolling. Start, Pause, and Reset buttons stay visible on desktop and mobile. Display turns amber at ≤10 minutes, red & pulsing at expiry.
 
-- `[SELECT TWO]` support with a Submit button and live "select N more" hint.
-- **Domain filter** — drill into one domain at a time, or filter to
-  Acronym-only, Scenario-only, PBQ-only, or Missed-only views.
+### Auto-explained answers
 
-### Completion behavior
+On resolution, each question shows:
+- Correct answer with one-line rationale
+- Explanation panel
+- Callout for the most tempting wrong answer
 
-When the exam is complete (all questions resolved or the timer expires):
+### Completion & results
 
-- The timer **stops automatically** and cannot be restarted.
-- A clear PASS / BELOW PASS THRESHOLD completion banner appears at the top of
-  the results, with the final score, percentage, exam mode, timer setting, and
-  PBQ percentage used.
-- A per-domain results breakdown follows with a weak-area heatmap.
-- Buttons offer to **Export Fail Log** (`.txt`) or **Export Miss Log**
-  (`.json`), and to filter to "Review missed only".
-- Pass threshold is `~83%` (i.e., 75-of-90 on a full exam).
+When done (all questions resolved or timer expires):
 
-### Fail log / missed-question tracking
+- Timer stops automatically
+- PASS / BELOW PASS banner with final score, percentage, exam mode, timer, and PBQ %
+- Per-domain results breakdown with weak-area heatmap
+- Options to export fail log (`.txt`) or miss log (`.json`)
+- Review missed questions filter
 
-Every missed question is captured locally with full context:
+**Pass threshold**: ~83% (75 of 90 correct)
 
-- Question number, domain, stem
-- Selected answer(s), correct answer(s)
-- Explanation
-- Timestamp (ISO 8601)
-- Exam mode (`1-chance` or `2-chance`)
-- Timer setting (in minutes)
+### Persistent missed-question tracking
+
+Every wrong answer is logged locally with full context:
+
+- Question number, domain, stem, selected/correct answers
+- Explanation and timestamp (ISO 8601)
+- Exam mode and timer setting
 - Number of attempts used
 
-Logs persist in `localStorage` (key `sy0701.missLog.v2`) and can be exported
-in two formats:
+Logs persist in `localStorage` (key `sy0701.missLog.v2`) and can be exported as:
 
-- **`fail-log-<timestamp>.txt`** — plain-text, human-readable; one record per
-  missed question. Triggered by the **Export Fail Log** button (in the
-  bottom nav and on the completion banner).
-- **`sy0701-miss-log-<timestamp>.json`** — full structured JSON with all
-  fields. Triggered by **Export Miss Log (.json)**.
+- **`fail-log-<timestamp>.txt`** — human-readable plain text
+- **`sy0701-miss-log-<timestamp>.json`** — full structured JSON
 
-Nothing is uploaded — the app makes no network calls.
-
-### Offline / no dependencies
-
-Pure static site. Single HTML page, plain CSS, vanilla JavaScript — no build
-step, no packages, no tracking. Open `exam90/index.html` directly or serve the
-folder with any local file server.
-
-## Project structure
-
-```
-SY0-701_Interactive/
-├── README.md                                  # this file
-├── index.html                                 # 50-question scenario quiz
-├── assets/                                    # styles + data + logic for the 50-question app
-│   ├── styles.css
-│   ├── quiz-data.js
-│   └── quiz.js
-├── SY0-701_Practice_Exam_2026-04-26.md        # 90-question printable exam
-└── exam90/                                    # 90-question interactive exam
-    ├── index.html
-    └── assets/
-        ├── styles.css
-        ├── quiz-data.js                       # all 90 question objects
-        └── quiz.js                            # rendering, scoring, timer, filter
-```
-
-## Running
-
-There is no build step. Open the HTML file directly:
-
-```bash
-# macOS
-open exam90/index.html
-
-# Windows (PowerShell)
-start exam90/index.html
-
-# Linux
-xdg-open exam90/index.html
-```
-
-Or serve the folder locally if your browser blocks file:// access:
-
-```bash
-python3 -m http.server 8000
-# then visit http://localhost:8000/exam90/
-```
+No network calls — 100% offline.
 
 ## Scoring
 
-Each question allows up to 2 attempts and scores partial credit:
-
 | Attempt outcome             | Points |
 |-----------------------------|--------|
-| Correct on the 1st attempt  | 1.0    |
-| Correct on the 2nd attempt  | 0.5    |
+| Correct on 1st attempt      | 1.0    |
+| Correct on 2nd attempt      | 0.5    |
 | Both attempts wrong         | 0.0    |
 
-When a question is resolved (either correct or both attempts exhausted), an
-explanation panel appears with the correct answer, a one-line rationale, and a
-callout for the most tempting wrong answer.
+## Running
 
-**Pass threshold:** ~83% (75 of 90). The actual scaled passing score for the
-live SY0-701 exam is 750 / 900; the percentage threshold here is a useful
-approximation for self-assessment.
+No build step required. Just open the HTML file:
 
-## Question calibration
+```bash
+# macOS
+open index.html
 
-Questions are written to match real SY0-701 difficulty distribution:
+# Windows (PowerShell)
+start index.html
 
-- ~30% foundational recall
-- ~50% applied / scenario thinking
-- ~20% calibrated distractor questions
+# Linux
+xdg-open index.html
+```
 
-Every question is tagged with a specific SY0-701 exam objective in the
-markdown exam, and with a domain identifier in the web app (`domainNum`).
+Or serve locally if your browser blocks `file://`:
+
+```bash
+python3 -m http.server 8000
+# then visit http://localhost:8000
+```
 
 ## Customization
 
-To add, edit, or replace questions in the 90-question app, edit
-`exam90/assets/quiz-data.js`. Each question is a plain JavaScript object:
+Edit `assets/quiz-data.js` to add, update, or replace questions. Each MCQ is a plain JavaScript object:
 
 ```js
 {
   num: 1,
   domain: "Domain 1.2 — CIA & Least Privilege",
   domainNum: 1,                 // 1..5
-  acronym: false,               // adds an "Acronym" badge
-  scenario: false,              // adds a "Scenario" badge
+  acronym: false,               // badge for acronym questions
+  scenario: false,              // badge for scenario questions
   selectMulti: false,           // true for [SELECT TWO] / [SELECT THREE]
   stem: "Question text goes here...",
   options: { A: "...", B: "...", C: "...", D: "..." },
-  correct: "B",                 // string, OR array like ["A","B"] for multi
-  explanation: "Why the correct answer is correct.",
-  wrongHint: { letter: "A", text: "Why A is the most tempting wrong answer." }
+  correct: "B",                 // string OR array like ["A","B"] for multi-select
+  explanation: "Why the correct answer is right.",
+  wrongHint: { letter: "A", text: "Why this is the most tempting wrong choice." }
 }
 ```
 
-Up to five options (A–E) are supported per question. Single-correct questions
-use `correct: "B"`; multi-select questions use `correct: ["A", "B"]` together
-with `selectMulti: true`.
-
-PBQs (matching-style) live in `window.PBQ_DATA` at the bottom of
-`quiz-data.js`. Each PBQ entry includes `pbq: true` metadata; MCQs in
-`QUIZ_DATA` are implicitly `pbq: false`.
+PBQs (matching-style) live in `window.PBQ_DATA` at the bottom of `quiz-data.js`:
 
 ```js
 {
   pbqId: "pbq-control-categories",
-  pbq: true,                      // metadata flag
+  pbq: true,
   title: "PBQ — Classify Each Control",
   domain: "Domain 1.1 — Control Categories",
   domainNum: 1,
-  prompt: "Drag/assign each security control to its CompTIA control CATEGORY...",
+  prompt: "Assign each control to its category...",
   categories: ["Managerial", "Operational", "Technical", "Physical"],
   items: [
     { id: "c1", label: "Acceptable Use Policy", correct: "Managerial" },
@@ -243,10 +157,7 @@ PBQs (matching-style) live in `window.PBQ_DATA` at the bottom of
 }
 ```
 
-Timer length, exam mode, PBQ percentage, and pool size are no longer
-hard-coded — they're chosen on the Dynamic_Options screen and stored in
-`examSettings`. To change the **allowed timer values** or the **default per
-mode**, edit the constants near the top of `exam90/assets/quiz.js`:
+To adjust timer range or exam defaults, edit constants in `assets/quiz.js`:
 
 ```js
 const TIMER_MIN = 30;
@@ -255,14 +166,11 @@ const TIMER_ALLOWED = [30, 45, 60, 75, 90];
 const TIMER_DEFAULT_BY_MODE = { 1: 60, 2: 90 };
 ```
 
-The pass threshold lives in `computeFinalScore()` in the same file
-(`pct >= 83`).
+Pass threshold is in `computeFinalScore()` (`pct >= 83`).
 
 ## Browser support
 
-Tested in current Chrome, Edge, Firefox, and Safari. Uses standard ES2015+
-features (`const`, arrow functions, `Set`, template literals); no transpilation
-needed for any browser released in the last several years.
+Modern Chrome, Edge, Firefox, Safari. ES2015+ features; no transpilation needed.
 
 ## Disclaimer
 
