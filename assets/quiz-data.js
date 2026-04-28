@@ -640,3 +640,213 @@ window.QUIZ_DATA = [
     explanation: "A defensible decision balances control cost against expected loss; spending $500K to prevent $80K/yr fails cost-benefit absent other drivers.",
     wrongHint: { letter: "A", text: "Implementing controls without economic justification wastes scarce security budget that could reduce higher-impact risks." } }
 ];
+
+// =============================================================================
+// PBQs (Performance-Based Questions) — matching/categorization style.
+//
+// Each PBQ presents N items the test-taker must assign to one of M categories
+// (or to a specific match). All assignments are scored together at submit:
+//   - All correct on first try   -> 1.0  (full credit)
+//   - All correct on second try  -> 0.5  (half credit; only when 2-attempt mode)
+//   - Otherwise                  -> 0.0
+//
+// Schema:
+//   {
+//     pbqId:        unique string id
+//     title:        short title shown above the matching grid
+//     domain:       human-readable domain label
+//     domainNum:    1..5 (for domain-weighted scoring)
+//     pbq:          true  (always true for entries in PBQ_DATA)
+//     prompt:       instruction text for the test-taker
+//     categories:   ordered array of category labels (the "buckets")
+//     items:        ordered array of { id, label, correct }
+//                   where correct is one of the category labels
+//     explanation:  shown after submission
+//   }
+//
+// MCQ entries in QUIZ_DATA above are implicitly pbq: false. Code that needs to
+// know whether an entry is a PBQ should use entry.pbq === true.
+// =============================================================================
+
+window.PBQ_DATA = [
+  {
+    pbqId: "pbq-control-categories",
+    pbq: true,
+    title: "PBQ — Classify Each Control",
+    domain: "Domain 1.1 — Control Categories",
+    domainNum: 1,
+    prompt: "Drag/assign each security control to its CompTIA control CATEGORY (Managerial, Operational, Technical, Physical).",
+    categories: ["Managerial", "Operational", "Technical", "Physical"],
+    items: [
+      { id: "c1", label: "Acceptable Use Policy",                           correct: "Managerial" },
+      { id: "c2", label: "Bollard at lobby entrance",                        correct: "Physical" },
+      { id: "c3", label: "Firewall ACL rule",                                correct: "Technical" },
+      { id: "c4", label: "Security guard performing shift checks",           correct: "Operational" },
+      { id: "c5", label: "Risk assessment procedure",                        correct: "Managerial" },
+      { id: "c6", label: "Disk encryption (BitLocker)",                      correct: "Technical" },
+      { id: "c7", label: "Mantrap / access vestibule",                       correct: "Physical" },
+      { id: "c8", label: "Awareness-training delivery (monthly reminders)",  correct: "Operational" }
+    ],
+    explanation: "Managerial controls are policies/risk procedures (paper). Operational controls are people-executed day-to-day (guards, awareness delivery). Technical controls are enforced by technology (firewall, encryption). Physical controls are tangible barriers (bollards, mantraps)."
+  },
+
+  {
+    pbqId: "pbq-malware-behavior",
+    pbq: true,
+    title: "PBQ — Match Malware to Behavior",
+    domain: "Domain 2.2 — Malware Types",
+    domainNum: 2,
+    prompt: "Match each malware family to its DEFINING behavior.",
+    categories: ["Encrypts files & demands payment", "Self-propagates across network", "Hides at kernel level", "Disguises as legitimate software", "Captures keystrokes / exfils data"],
+    items: [
+      { id: "m1", label: "Ransomware", correct: "Encrypts files & demands payment" },
+      { id: "m2", label: "Worm",       correct: "Self-propagates across network" },
+      { id: "m3", label: "Rootkit",    correct: "Hides at kernel level" },
+      { id: "m4", label: "Trojan",     correct: "Disguises as legitimate software" },
+      { id: "m5", label: "Spyware/Keylogger", correct: "Captures keystrokes / exfils data" }
+    ],
+    explanation: "Defining behaviors per CompTIA: ransomware = extortion via encryption; worms self-propagate without a host program; rootkits operate at kernel level to hide artifacts; trojans masquerade as benign apps; spyware/keyloggers harvest data."
+  },
+
+  {
+    pbqId: "pbq-port-protocol",
+    pbq: true,
+    title: "PBQ — Match Port to Secure Protocol",
+    domain: "Domain 4.1 — Secure Protocols",
+    domainNum: 4,
+    prompt: "Assign the standard port to the protocol that uses it.",
+    categories: ["22", "443", "3389", "53", "636", "993"],
+    items: [
+      { id: "p1", label: "SSH (encrypted shell)",       correct: "22" },
+      { id: "p2", label: "HTTPS (TLS web)",             correct: "443" },
+      { id: "p3", label: "RDP (Windows remote desktop)", correct: "3389" },
+      { id: "p4", label: "DNS (name resolution)",       correct: "53" },
+      { id: "p5", label: "LDAPS (LDAP over TLS)",       correct: "636" },
+      { id: "p6", label: "IMAPS (mail retrieval over TLS)", correct: "993" }
+    ],
+    explanation: "Memorize the standard ports: SSH/22, DNS/53, LDAPS/636, HTTPS/443, IMAPS/993, RDP/3389. CompTIA frequently tests secure-vs-insecure pairs (e.g., LDAP/389 vs LDAPS/636, IMAP/143 vs IMAPS/993)."
+  },
+
+  {
+    pbqId: "pbq-ir-phases",
+    pbq: true,
+    title: "PBQ — NIST 800-61 Incident Response Phases",
+    domain: "Domain 4.4 — Incident Response",
+    domainNum: 4,
+    prompt: "Assign each action to the incident-response phase it BEST fits (NIST SP 800-61).",
+    categories: ["Preparation", "Detection & Analysis", "Containment", "Eradication", "Recovery", "Lessons Learned"],
+    items: [
+      { id: "ir1", label: "Author runbooks and tabletop exercise the team",     correct: "Preparation" },
+      { id: "ir2", label: "SIEM correlates alerts and an analyst confirms IoCs", correct: "Detection & Analysis" },
+      { id: "ir3", label: "Disconnect the affected VLAN to stop spread",          correct: "Containment" },
+      { id: "ir4", label: "Wipe and reimage hosts; remove persistence mechanisms", correct: "Eradication" },
+      { id: "ir5", label: "Rebuild from gold images and validate before return-to-service", correct: "Recovery" },
+      { id: "ir6", label: "Hold post-incident review and update playbooks",       correct: "Lessons Learned" }
+    ],
+    explanation: "NIST 800-61 lifecycle: Preparation (before), Detection & Analysis (identify), Containment (limit spread), Eradication (remove threat), Recovery (return to service), Lessons Learned (improve)."
+  },
+
+  {
+    pbqId: "pbq-attack-mitigation",
+    pbq: true,
+    title: "PBQ — Match Attack to Best Mitigation",
+    domain: "Domain 2.4 — Common Attacks",
+    domainNum: 2,
+    prompt: "Assign each attack to the SINGLE mitigation that most directly defeats it.",
+    categories: [
+      "Parameterized queries / prepared statements",
+      "Output encoding + CSP",
+      "Anti-CSRF tokens (synchronizer pattern)",
+      "Account lockout + MFA",
+      "Dynamic ARP Inspection (DAI)",
+      "DNSSEC validation"
+    ],
+    items: [
+      { id: "a1", label: "SQL injection",     correct: "Parameterized queries / prepared statements" },
+      { id: "a2", label: "Reflected/Stored XSS", correct: "Output encoding + CSP" },
+      { id: "a3", label: "CSRF",              correct: "Anti-CSRF tokens (synchronizer pattern)" },
+      { id: "a4", label: "Online password brute-force", correct: "Account lockout + MFA" },
+      { id: "a5", label: "ARP poisoning (on-path)",     correct: "Dynamic ARP Inspection (DAI)" },
+      { id: "a6", label: "DNS cache poisoning",          correct: "DNSSEC validation" }
+    ],
+    explanation: "Each attack has a textbook control: SQLi -> parameterization; XSS -> encoding/CSP; CSRF -> tokens; brute-force -> lockout+MFA; ARP poisoning -> DAI on the switch; DNS poisoning -> DNSSEC for response authenticity."
+  },
+
+  {
+    pbqId: "pbq-risk-treatment",
+    pbq: true,
+    title: "PBQ — Risk Treatment Strategy",
+    domain: "Domain 5.2 — Risk Management",
+    domainNum: 5,
+    prompt: "Classify each business decision as one of the four risk-treatment strategies.",
+    categories: ["Avoidance", "Mitigation", "Transfer", "Acceptance"],
+    items: [
+      { id: "r1", label: "Buy a cyber-insurance policy that covers breach costs",       correct: "Transfer" },
+      { id: "r2", label: "Discontinue the legacy product line that creates the risk",    correct: "Avoidance" },
+      { id: "r3", label: "Document & sign off on a low-likelihood/low-impact residual",   correct: "Acceptance" },
+      { id: "r4", label: "Deploy MFA + EDR to reduce likelihood of credential theft",     correct: "Mitigation" },
+      { id: "r5", label: "Outsource payment processing to a PCI-compliant vendor",        correct: "Transfer" },
+      { id: "r6", label: "Patch the vulnerable system in this Friday's maintenance window", correct: "Mitigation" }
+    ],
+    explanation: "Avoidance eliminates the risky activity; Mitigation reduces likelihood/impact via controls; Transfer shifts the financial burden to a third party (insurance, vendor); Acceptance is a documented choice to live with the residual risk."
+  },
+
+  {
+    pbqId: "pbq-auth-factors",
+    pbq: true,
+    title: "PBQ — Authentication Factor Categories",
+    domain: "Domain 4.6 — Identity & Access",
+    domainNum: 4,
+    prompt: "Match each authenticator to its factor category.",
+    categories: ["Something you know", "Something you have", "Something you are", "Somewhere you are", "Something you do"],
+    items: [
+      { id: "f1", label: "8-character passphrase",                          correct: "Something you know" },
+      { id: "f2", label: "FIDO2 hardware security key",                     correct: "Something you have" },
+      { id: "f3", label: "Fingerprint scan",                                correct: "Something you are" },
+      { id: "f4", label: "GPS-based geofencing check",                      correct: "Somewhere you are" },
+      { id: "f5", label: "Typing-cadence (keystroke dynamics) profile",     correct: "Something you do" },
+      { id: "f6", label: "PIN code memorized by user",                      correct: "Something you know" },
+      { id: "f7", label: "TOTP code from an authenticator app on the phone", correct: "Something you have" }
+    ],
+    explanation: "CompTIA recognizes five factor families: knowledge (know), possession (have), inherence/biometric (are), location (somewhere), and behavioral (do). True MFA requires factors from DIFFERENT families."
+  },
+
+  {
+    pbqId: "pbq-crypto-property",
+    pbq: true,
+    title: "PBQ — Cryptography Security Property",
+    domain: "Domain 1.4 — Cryptography",
+    domainNum: 1,
+    prompt: "For each crypto primitive, assign the security property it PRIMARILY provides.",
+    categories: ["Confidentiality", "Integrity", "Authentication", "Non-repudiation", "Availability"],
+    items: [
+      { id: "k1", label: "AES-256 in GCM mode (data-at-rest)", correct: "Confidentiality" },
+      { id: "k2", label: "SHA-256 hash of a downloaded ISO",   correct: "Integrity" },
+      { id: "k3", label: "HMAC-SHA256 on an API request",      correct: "Integrity" },
+      { id: "k4", label: "Digital signature on a contract (private-key sign, public-key verify)", correct: "Non-repudiation" },
+      { id: "k5", label: "TLS server certificate chain validation", correct: "Authentication" },
+      { id: "k6", label: "Symmetric session key for an HTTPS tunnel", correct: "Confidentiality" }
+    ],
+    explanation: "Encryption protects confidentiality. Hashes and HMACs protect integrity (HMACs add sender authentication via a shared secret). Digital signatures provide non-repudiation. Certificate chain validation authenticates the server identity."
+  },
+
+  {
+    pbqId: "pbq-cloud-shared-resp",
+    pbq: true,
+    title: "PBQ — Cloud Shared Responsibility (IaaS)",
+    domain: "Domain 3.1 — Cloud",
+    domainNum: 3,
+    prompt: "In an IaaS deployment (e.g., Linux VMs on AWS EC2), assign each layer to whoever is responsible.",
+    categories: ["Cloud provider", "Customer"],
+    items: [
+      { id: "s1", label: "Physical data-center security",        correct: "Cloud provider" },
+      { id: "s2", label: "Hypervisor patching",                   correct: "Cloud provider" },
+      { id: "s3", label: "Guest OS patching",                     correct: "Customer" },
+      { id: "s4", label: "Application code & dependencies",       correct: "Customer" },
+      { id: "s5", label: "IAM users, roles, and policies inside the account", correct: "Customer" },
+      { id: "s6", label: "Underlying network fabric & power",     correct: "Cloud provider" },
+      { id: "s7", label: "Customer data classification & encryption keys (BYOK)", correct: "Customer" }
+    ],
+    explanation: "In IaaS the provider secures everything up to the hypervisor; the customer secures the guest OS and above (OS patches, app code, IAM, data, encryption keys). Provider 'security OF the cloud,' customer 'security IN the cloud.'"
+  }
+];

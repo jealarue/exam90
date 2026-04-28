@@ -27,31 +27,105 @@ reproduced.
 
 Located at `exam90/index.html`.
 
-- **Domain-weighted question pool** matching the official SY0-701 blueprint:
+### Domain-weighted question pool
 
-  | Domain | Topic                                          | Questions | Weight |
-  |--------|------------------------------------------------|-----------|--------|
-  | 1      | General Security Concepts                      | 11        | 12%    |
-  | 2      | Threats, Vulnerabilities & Mitigations         | 20        | 22%    |
-  | 3      | Security Architecture                          | 16        | 18%    |
-  | 4      | Security Operations                            | 25        | 28%    |
-  | 5      | Security Program Management & Oversight        | 18        | 20%    |
-  | **Total** |                                             | **90**    | 100%   |
+Matching the official SY0-701 blueprint:
 
-- **15 acronym questions** distributed across all five domains (no clustering),
-  covering ZTNA, CRL, APT, CVSS, IOC, NGFW, SDN, RPO, SOAR, PAM, EDR, STIX,
-  PII, PHI, NDA.
-- **19 scenario-based questions** with realistic SOC analyst, security
-  architect, IR, and CISO framing.
-- **[SELECT TWO] support** with a Submit button and live "select N more" hint.
-- **Two attempts per question** with partial-credit scoring (1.0 / 0.5 / 0).
-- **90-minute exam timer** — Start / Pause / Reset; amber under 10 minutes,
-  red and pulsing at expiry.
+| Domain | Topic                                          | Questions | Weight |
+|--------|------------------------------------------------|-----------|--------|
+| 1      | General Security Concepts                      | 11        | 12%    |
+| 2      | Threats, Vulnerabilities & Mitigations         | 20        | 22%    |
+| 3      | Security Architecture                          | 16        | 18%    |
+| 4      | Security Operations                            | 25        | 28%    |
+| 5      | Security Program Management & Oversight        | 18        | 20%    |
+| **Total** |                                             | **90**    | 100%   |
+
+### Dynamic Options (pre-exam setup)
+
+The first screen is `Dynamic_Options()` — a configuration panel where you set
+the rules of the practice run before the timer starts. All choices live in a
+single `examSettings` state object so nothing is hard-coded.
+
+- **Exam mode** — `1 chance per question` (a wrong answer immediately resolves
+  the question as failed) or `2 chances per question` (partial credit: 1.0
+  first try, 0.5 second try, 0 if both wrong).
+- **Set timer** — choose from `30 / 45 / 60 / 75 / 90` minutes. Allowed range
+  is **30–90 minutes**. The default depends on exam mode: **90 min** for
+  2-chance mode (full exam), **60 min** for 1-chance mode (faster realistic
+  drill). Switching modes auto-snaps the timer to the matching default; you
+  can still override within the 30–90 range.
+- **Include PBQs: On / Off** — turn matching-style PBQs on or off for the run.
+- **PBQ percentage** — when PBQs are on, pick `0% / 10% / 20% / 30% / Custom %`.
+  The app calculates how many PBQ questions to include based on the total
+  number of questions selected (e.g., 90 questions × 10% ≈ 9 PBQs). If the
+  requested percentage exceeds the number of PBQ-tagged questions available,
+  all available PBQs are used and a clear warning is shown.
+- **Question pool** — `All 90 MCQs` (full domain-weighted exam) or a
+  `Random subset` of N MCQs. PBQs are selected **before** regular MCQs when
+  building the exam.
+- **Live config summary** — pills under the form show the exact mode, timer,
+  PBQ count, and pool currently selected, so you can confirm the configuration
+  before Start.
+
+### Sticky timer + controls
+
+The timer box is `position: sticky` at the top of the exam screen on desktop
+**and** mobile, so Start, Pause, and Reset are always reachable while
+scrolling. The timer never covers question text or answer choices. Display
+turns amber at ≤ 10 minutes and red & pulsing at expiry.
+
+### 15 acronym + 19 scenario MCQs
+
+15 acronym questions distributed across all five domains (ZTNA, CRL, APT,
+CVSS, IOC, NGFW, SDN, RPO, SOAR, PAM, EDR, STIX, PII, PHI, NDA) plus 19
+scenario-based questions with realistic SOC analyst, security architect, IR,
+and CISO framing.
+
+- `[SELECT TWO]` support with a Submit button and live "select N more" hint.
 - **Domain filter** — drill into one domain at a time, or filter to
-  Acronym-only or Scenario-only views.
-- **Per-domain results breakdown** with a PASS / BELOW PASS THRESHOLD verdict
-  at the 83% (75-of-90) line.
-- **Pure static site** — single HTML page, ~95 KB total assets, runs offline.
+  Acronym-only, Scenario-only, PBQ-only, or Missed-only views.
+
+### Completion behavior
+
+When the exam is complete (all questions resolved or the timer expires):
+
+- The timer **stops automatically** and cannot be restarted.
+- A clear PASS / BELOW PASS THRESHOLD completion banner appears at the top of
+  the results, with the final score, percentage, exam mode, timer setting, and
+  PBQ percentage used.
+- A per-domain results breakdown follows with a weak-area heatmap.
+- Buttons offer to **Export Fail Log** (`.txt`) or **Export Miss Log**
+  (`.json`), and to filter to "Review missed only".
+- Pass threshold is `~83%` (i.e., 75-of-90 on a full exam).
+
+### Fail log / missed-question tracking
+
+Every missed question is captured locally with full context:
+
+- Question number, domain, stem
+- Selected answer(s), correct answer(s)
+- Explanation
+- Timestamp (ISO 8601)
+- Exam mode (`1-chance` or `2-chance`)
+- Timer setting (in minutes)
+- Number of attempts used
+
+Logs persist in `localStorage` (key `sy0701.missLog.v2`) and can be exported
+in two formats:
+
+- **`fail-log-<timestamp>.txt`** — plain-text, human-readable; one record per
+  missed question. Triggered by the **Export Fail Log** button (in the
+  bottom nav and on the completion banner).
+- **`sy0701-miss-log-<timestamp>.json`** — full structured JSON with all
+  fields. Triggered by **Export Miss Log (.json)**.
+
+Nothing is uploaded — the app makes no network calls.
+
+### Offline / no dependencies
+
+Pure static site. Single HTML page, plain CSS, vanilla JavaScript — no build
+step, no packages, no tracking. Open `exam90/index.html` directly or serve the
+folder with any local file server.
 
 ## Project structure
 
@@ -148,9 +222,41 @@ Up to five options (A–E) are supported per question. Single-correct questions
 use `correct: "B"`; multi-select questions use `correct: ["A", "B"]` together
 with `selectMulti: true`.
 
-To change the exam length of the timer, edit `TIMER_SECONDS` near the top of
-`exam90/assets/quiz.js`. The pass threshold lives in `renderSummary()` in the
-same file (`pct >= 83`).
+PBQs (matching-style) live in `window.PBQ_DATA` at the bottom of
+`quiz-data.js`. Each PBQ entry includes `pbq: true` metadata; MCQs in
+`QUIZ_DATA` are implicitly `pbq: false`.
+
+```js
+{
+  pbqId: "pbq-control-categories",
+  pbq: true,                      // metadata flag
+  title: "PBQ — Classify Each Control",
+  domain: "Domain 1.1 — Control Categories",
+  domainNum: 1,
+  prompt: "Drag/assign each security control to its CompTIA control CATEGORY...",
+  categories: ["Managerial", "Operational", "Technical", "Physical"],
+  items: [
+    { id: "c1", label: "Acceptable Use Policy", correct: "Managerial" },
+    // ...
+  ],
+  explanation: "..."
+}
+```
+
+Timer length, exam mode, PBQ percentage, and pool size are no longer
+hard-coded — they're chosen on the Dynamic_Options screen and stored in
+`examSettings`. To change the **allowed timer values** or the **default per
+mode**, edit the constants near the top of `exam90/assets/quiz.js`:
+
+```js
+const TIMER_MIN = 30;
+const TIMER_MAX = 90;
+const TIMER_ALLOWED = [30, 45, 60, 75, 90];
+const TIMER_DEFAULT_BY_MODE = { 1: 60, 2: 90 };
+```
+
+The pass threshold lives in `computeFinalScore()` in the same file
+(`pct >= 83`).
 
 ## Browser support
 

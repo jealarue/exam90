@@ -3,62 +3,185 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CompTIA Security+ (SY0-701) — 90-Question Practice Exam</title>
+  <title>CompTIA Security+ (SY0-701) — Practice Exam</title>
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
   <div class="wrap">
     <header class="hero">
-      <span class="tag">SY0-701 · Full Practice Exam</span>
-      <h1>CompTIA Security+ 90-Question Practice Exam</h1>
+      <span class="tag">SY0-701 · Interactive Practice Exam</span>
+      <h1>CompTIA Security+ Practice Exam</h1>
       <p class="subtitle">
-        Domain-weighted to match the official SY0-701 blueprint · 15 acronym questions ·
-        scenario items · [SELECT TWO] support · 2 attempts per question
+        Domain-weighted to the official SY0-701 blueprint · 90 multiple-choice
+        items + matching-style PBQs · acronyms · scenarios · [SELECT TWO]
+        support · persistent weak-area tracker
       </p>
     </header>
 
-    <!-- Top control panel -->
-    <div class="control-panel">
-      <div class="timer-box">
-        <div class="timer-label">Exam Timer</div>
-        <div class="timer-display" id="timerDisplay">90:00</div>
-        <div class="timer-buttons">
-          <button class="btn-mini" id="timerStart" type="button">Start</button>
-          <button class="btn-mini" id="timerPause" type="button" disabled>Pause</button>
-          <button class="btn-mini ghost" id="timerReset" type="button">Reset</button>
+    <!-- ========================================================== -->
+    <!-- START SCREEN: Dynamic_Options() pre-exam configuration      -->
+    <!-- ========================================================== -->
+    <section class="start-screen" id="startScreen" aria-labelledby="dynOptHeading">
+      <h2 id="dynOptHeading">Dynamic Options</h2>
+      <p class="start-sub">
+        Configure the exam, then click <strong>Start Exam</strong>. The timer
+        begins on Start. Settings lock once the exam starts &mdash; use Reset
+        to return to this screen.
+      </p>
+
+      <div class="config-grid">
+        <!-- ---- Exam mode (1 chance vs 2 chance) ---- -->
+        <fieldset class="config-card" id="cardExamMode">
+          <legend>Exam mode</legend>
+          <label class="radio-row">
+            <input type="radio" name="attemptsMode" value="2" checked />
+            <span><strong>2 chances per question</strong> &mdash; partial credit (1.0 first try, 0.5 second try, 0 missed)</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="attemptsMode" value="1" />
+            <span><strong>1 chance per question</strong> &mdash; exam-realistic (1.0 correct, 0 wrong; one wrong click resolves it)</span>
+          </label>
+        </fieldset>
+
+        <!-- ---- Dynamic timer (depends on exam mode) ---- -->
+        <fieldset class="config-card" id="cardTimer">
+          <legend>Set timer</legend>
+          <label class="num-row">
+            <span>Time limit:</span>
+            <select id="timerMinutes" aria-label="Exam time limit in minutes">
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+              <option value="75">75 minutes</option>
+              <option value="90" selected>90 minutes (full)</option>
+            </select>
+          </label>
+          <p class="config-help" id="timerHelp">
+            Allowed range 30&ndash;90&nbsp;min. Default 90 for 2-chance mode,
+            60 for 1-chance mode. Selected: <strong id="timerSelectedLabel">90 minutes</strong>.
+          </p>
+        </fieldset>
+
+        <!-- ---- PBQ options (On/Off + percentage) ---- -->
+        <fieldset class="config-card" id="cardPbq">
+          <legend>PBQs (Performance-Based)</legend>
+          <label class="radio-row">
+            <input type="radio" name="pbqMode" value="on" checked />
+            <span><strong>Include PBQs: On</strong> &mdash; matching-style PBQs (4&ndash;5 typical on the real exam)</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="pbqMode" value="off" />
+            <span><strong>Include PBQs: Off</strong> &mdash; MCQs only</span>
+          </label>
+          <label class="num-row indent" id="pbqPercentRow">
+            <span>PBQ percentage:</span>
+            <select id="pbqPercent" aria-label="PBQ percentage">
+              <option value="0">0%</option>
+              <option value="10" selected>10%</option>
+              <option value="20">20%</option>
+              <option value="30">30%</option>
+              <option value="custom">Custom %</option>
+            </select>
+          </label>
+          <label class="num-row indent" id="pbqCustomRow" style="display:none;">
+            <span>Custom %:</span>
+            <input type="number" id="pbqCustom" min="0" max="100" value="10" />
+          </label>
+          <p class="config-help" id="pbqInfo">
+            <span id="pbqMaxNote">/ 9 PBQs available</span>
+          </p>
+        </fieldset>
+
+        <!-- ---- Question pool ---- -->
+        <fieldset class="config-card" id="cardPool">
+          <legend>Question pool</legend>
+          <label class="radio-row">
+            <input type="radio" name="poolMode" value="all" checked />
+            <span><strong>All 90 MCQs</strong> &mdash; full domain-weighted exam</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="poolMode" value="random" />
+            <span><strong>Random subset</strong> &mdash; pull a random sample</span>
+          </label>
+          <label class="num-row indent" id="poolSizeRow" style="display:none;">
+            <span>How many MCQs:</span>
+            <input type="number" id="poolSize" min="5" max="90" value="30" />
+          </label>
+        </fieldset>
+      </div>
+
+      <!-- Live summary preview -->
+      <div class="config-summary" id="configSummary" aria-live="polite"></div>
+
+      <div class="start-actions">
+        <button class="btn btn-large" id="startExamBtn" type="button">Start Exam</button>
+        <button class="btn ghost" id="viewHistoryBtn" type="button">View Past Mistakes</button>
+      </div>
+
+      <!-- Persistent miss history preview -->
+      <section class="miss-history" id="missHistory" hidden>
+        <div class="miss-history-head">
+          <h3>Your Persistent Weak-Area Log</h3>
+          <div class="miss-history-actions">
+            <button class="btn-mini" id="exportMissesBtn" type="button">Export miss log</button>
+            <button class="btn-mini ghost" id="clearMissesBtn" type="button">Clear history</button>
+          </div>
+        </div>
+        <div id="missHistoryBody"></div>
+      </section>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- EXAM SCREEN: hidden until Start                              -->
+    <!-- ========================================================== -->
+    <div class="exam-screen" id="examScreen" hidden>
+      <!-- Sticky always-visible timer + filter bar -->
+      <div class="sticky-bar" id="stickyBar" role="region" aria-label="Exam timer and filters">
+        <div class="sticky-inner">
+          <div class="timer-box compact" id="timerBox">
+            <div class="timer-label">
+              Exam Timer <span class="timer-mode-pill" id="timerModePill">2-chance · 90m</span>
+            </div>
+            <div class="timer-display" id="timerDisplay" aria-live="polite">90:00</div>
+            <div class="timer-buttons">
+              <button class="btn-mini" id="timerStart" type="button" aria-label="Start timer">Start</button>
+              <button class="btn-mini" id="timerPause" type="button" disabled aria-label="Pause timer">Pause</button>
+              <button class="btn-mini ghost" id="timerReset" type="button" aria-label="Reset exam">Reset</button>
+            </div>
+          </div>
+          <div class="filter-box compact">
+            <label for="domainFilter">Filter</label>
+            <select id="domainFilter">
+              <option value="all">All questions</option>
+              <option value="1">Domain 1 — General Concepts</option>
+              <option value="2">Domain 2 — Threats &amp; Vulns</option>
+              <option value="3">Domain 3 — Architecture</option>
+              <option value="4">Domain 4 — Operations</option>
+              <option value="5">Domain 5 — Program Mgmt</option>
+              <option value="acronym">Acronym only</option>
+              <option value="scenario">Scenario only</option>
+              <option value="pbq">PBQs only</option>
+              <option value="incorrect">Missed only</option>
+            </select>
+          </div>
+          <div class="sticky-progress">
+            <div class="progress-text" id="progressText">0 / 0 answered</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="score-pill" id="scorePill">Score: 0 / 0</div>
+          </div>
         </div>
       </div>
 
-      <div class="filter-box">
-        <label for="domainFilter">Filter by Domain</label>
-        <select id="domainFilter">
-          <option value="all">All Domains (90 questions)</option>
-          <option value="1">Domain 1 — General Security Concepts (11)</option>
-          <option value="2">Domain 2 — Threats, Vulnerabilities &amp; Mitigations (20)</option>
-          <option value="3">Domain 3 — Security Architecture (16)</option>
-          <option value="4">Domain 4 — Security Operations (25)</option>
-          <option value="5">Domain 5 — Security Program Management (18)</option>
-          <option value="acronym">Acronym Questions Only (15)</option>
-          <option value="scenario">Scenario Questions Only</option>
-        </select>
+      <main id="quiz"></main>
+
+      <div class="bottom-nav">
+        <button class="btn ghost" id="resetBtn" type="button">Reset Exam</button>
+        <button class="btn ghost" id="exportFailLogBtn" type="button">Export Fail Log</button>
+        <small id="scoringNote" style="color: var(--muted);">
+          Scoring: 1&nbsp;pt first-try · 0.5&nbsp;pt second-try · 0 if missed.
+          Pass threshold: ~83%.
+        </small>
       </div>
-    </div>
-
-    <!-- Progress -->
-    <div class="progress-wrap" role="status" aria-live="polite">
-      <div class="progress-text" id="progressText">Progress: 0 / 90 answered</div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="score-pill" id="scorePill">Score: 0 / 90</div>
-    </div>
-
-    <main id="quiz"></main>
-
-    <div class="bottom-nav">
-      <button class="btn ghost" id="resetBtn" type="button">Reset Exam</button>
-      <small style="color: var(--muted);">
-        Scoring: 1&nbsp;pt first-try · 0.5&nbsp;pt second-try · 0 if missed.
-        Pass threshold: ~83% (75/90).
-      </small>
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-/* SY0-701 90-Question Practice Exam — styles */
+/* SY0-701 Practice Exam — styles */
 
 :root {
   --bg:        #0f172a;
@@ -20,8 +20,11 @@
   --scenario-bg:rgba(251,191,36,0.15);
   --select:    #f472b6;
   --select-bg: rgba(244,114,182,0.15);
+  --pbq:       #34d399;
+  --pbq-bg:    rgba(52,211,153,0.15);
   --border:    #334155;
   --shadow:    0 10px 30px rgba(0,0,0,0.35);
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.25);
   --radius:    14px;
 }
 
@@ -71,33 +74,278 @@ header.hero .tag {
   text-transform: uppercase;
 }
 
-/* Control panel: timer + filter */
-.control-panel {
+/* ============================================================= */
+/* START SCREEN                                                    */
+/* ============================================================= */
+.start-screen {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  margin-bottom: 22px;
+}
+.start-screen h2 {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+.start-sub {
+  color: var(--muted);
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+}
+.config-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.4fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+}
+.config-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 0;
+}
+.config-card legend {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 6px;
+  font-weight: 700;
+}
+.config-help {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 6px 0 10px;
+}
+.radio-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 0;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+.radio-row input[type="radio"] {
+  margin-top: 4px;
+  accent-color: var(--accent);
+}
+.num-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 0.92rem;
+  flex-wrap: wrap;
+}
+.num-row.indent { margin-left: 24px; }
+.num-row input[type="number"] {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  width: 90px;
+  font: inherit;
+}
+.num-row input[type="number"]:focus,
+.num-row select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.num-row select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  cursor: pointer;
+  min-width: 140px;
+}
+.muted-tiny { color: var(--muted); font-size: 0.82rem; }
+
+/* Live config summary on the start screen */
+.config-summary {
+  background: #0b1324;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 4px 0 14px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.config-summary .summary-pill {
+  display: inline-block;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin: 2px 6px 2px 0;
+  font-size: 0.82rem;
+}
+.config-summary .summary-warn {
+  display: block;
+  margin-top: 6px;
+  color: var(--warn);
+  font-size: 0.85rem;
+}
+
+.start-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+.btn-large {
+  font-size: 1.05rem;
+  padding: 12px 28px;
+}
+
+/* ============================================================= */
+/* MISS HISTORY (start screen panel)                              */
+/* ============================================================= */
+.miss-history {
+  margin-top: 22px;
+  border-top: 1px dashed var(--border);
+  padding-top: 18px;
+}
+.miss-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.miss-history-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+.miss-history-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.weak-domain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+.weak-domain-cell {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+  overflow: hidden;
+}
+.weak-domain-cell .label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.weak-domain-cell .value {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-top: 4px;
+}
+.weak-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background: var(--bad);
+  width: 0%;
+  transition: width 240ms ease;
+}
+
+.miss-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.miss-row {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--bad);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+.miss-row .miss-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.miss-row .miss-stem { margin: 0; }
+
+/* ============================================================= */
+/* STICKY TIMER + FILTER BAR                                      */
+/* ============================================================= */
+.sticky-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(15,23,42,0.92);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--border);
+  margin: 0 -20px 20px;
+  padding: 12px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.sticky-inner {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(200px, 1fr) minmax(240px, 1.4fr);
+  gap: 14px;
+  align-items: center;
+  max-width: 980px;
+  margin: 0 auto;
 }
 .timer-box, .filter-box {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px 18px;
-  box-shadow: var(--shadow);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-sm);
+}
+.timer-box.compact, .filter-box.compact {
+  padding: 8px 12px;
+  border-radius: 10px;
 }
 .timer-label {
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.timer-mode-pill {
+  display: inline-block;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
 }
 .timer-display {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--accent);
-  margin: 4px 0 8px;
+  margin: 2px 0 6px;
   letter-spacing: 0.02em;
+  line-height: 1;
 }
 .timer-display.warning { color: var(--warn); }
 .timer-display.expired { color: var(--bad); animation: pulse 1.2s infinite; }
@@ -125,70 +373,66 @@ header.hero .tag {
   color: var(--muted);
   border: 1px solid var(--border);
 }
-.btn-mini.ghost:hover { color: var(--text); }
+.btn-mini.ghost:hover:not(:disabled) { color: var(--text); }
 
 .filter-box label {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 .filter-box select {
   width: 100%;
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 12px;
+  border-radius: 8px;
+  padding: 6px 10px;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 .filter-box select:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Progress */
-.progress-wrap {
+/* Sticky-bar progress block */
+.sticky-progress {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--panel);
-  padding: 14px 18px;
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
 }
-.progress-text {
-  font-size: 0.92rem;
+.sticky-progress .progress-text {
   color: var(--muted);
-  min-width: 180px;
+  font-size: 0.82rem;
 }
-.progress-bar {
-  flex: 1;
-  height: 8px;
+.sticky-progress .progress-bar {
+  height: 6px;
   background: #0b1324;
   border-radius: 999px;
   overflow: hidden;
 }
-.progress-fill {
+.sticky-progress .progress-fill {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, var(--accent), var(--good));
   transition: width 240ms ease;
 }
-.score-pill {
+.sticky-progress .score-pill {
   background: var(--panel-2);
   border: 1px solid var(--border);
-  padding: 4px 12px;
+  padding: 2px 10px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
+  align-self: flex-start;
   white-space: nowrap;
 }
 
-/* Question card */
+/* ============================================================= */
+/* QUESTION CARD                                                   */
+/* ============================================================= */
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -241,6 +485,7 @@ header.hero .tag {
 .badge.acronym  { color: var(--acronym);  border-color: var(--acronym);  background: var(--acronym-bg); }
 .badge.scenario { color: var(--scenario); border-color: var(--scenario); background: var(--scenario-bg); }
 .badge.select   { color: var(--select);   border-color: var(--select);   background: var(--select-bg); }
+.badge.pbq      { color: var(--pbq);      border-color: var(--pbq);      background: var(--pbq-bg); }
 
 .card .stem {
   margin: 6px 0 16px;
@@ -301,7 +546,7 @@ header.hero .tag {
   border-color: var(--accent);
 }
 
-/* Final states */
+/* Final option states */
 .option.wrong-attempt {
   background: var(--bad-bg);
   border-color: var(--bad);
@@ -328,19 +573,20 @@ header.hero .tag {
   opacity: 0.7;
 }
 
-/* Submit row for multi-select */
+/* Submit row for multi-select / PBQ */
 .submit-row {
   margin-top: 12px;
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 .submit-row .hint {
   color: var(--muted);
   font-size: 0.85rem;
 }
 
-/* Status line */
+/* Status line under each card */
 .status {
   margin-top: 14px;
   min-height: 22px;
@@ -377,7 +623,64 @@ header.hero .tag {
 }
 .explanation .wrong-list h4 { color: var(--bad); }
 
-/* Footer nav */
+/* ============================================================= */
+/* PBQ MATCHING WIDGET                                             */
+/* ============================================================= */
+.pbq-prompt {
+  margin: 4px 0 14px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.pbq-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pbq-row {
+  display: grid;
+  grid-template-columns: 1fr minmax(200px, 280px);
+  gap: 10px;
+  align-items: center;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.pbq-row .pbq-item {
+  font-size: 0.95rem;
+}
+.pbq-row select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 100%;
+}
+.pbq-row select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pbq-row.correct {
+  border-color: var(--good);
+  background: var(--good-bg);
+}
+.pbq-row.wrong {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+.pbq-row .pbq-feedback {
+  grid-column: 1 / -1;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.pbq-row.wrong .pbq-feedback { color: var(--bad); }
+.pbq-row.correct .pbq-feedback { color: var(--good); }
+
+/* ============================================================= */
+/* FOOTER                                                          */
+/* ============================================================= */
 .bottom-nav {
   display: flex;
   justify-content: space-between;
@@ -406,7 +709,9 @@ header.hero .tag {
 }
 .btn.ghost:hover { color: var(--text); }
 
-/* Final summary */
+/* ============================================================= */
+/* FINAL SUMMARY                                                   */
+/* ============================================================= */
 .summary {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -437,6 +742,8 @@ header.hero .tag {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
+  position: relative;
+  overflow: hidden;
 }
 .summary .domain-cell .label {
   font-size: 0.78rem;
@@ -448,6 +755,23 @@ header.hero .tag {
   font-weight: 700;
   font-size: 1.05rem;
 }
+.summary .domain-cell .domain-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background: var(--good);
+  width: 0%;
+  transition: width 240ms ease;
+}
+.summary .domain-cell.weak .domain-bar { background: var(--bad); }
+.summary .domain-cell.mid  .domain-bar { background: var(--warn); }
+.summary .summary-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
 
 /* Empty state when filter returns nothing */
 .empty {
@@ -457,6 +781,22 @@ header.hero .tag {
   padding: 30px;
   text-align: center;
   color: var(--muted);
+}
+
+/* Toast for time-up notice */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bad);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  z-index: 100;
+  box-shadow: var(--shadow);
+  animation: fadeIn 240ms ease;
 }
 
 /* Animations */
@@ -470,11 +810,74 @@ header.hero .tag {
 }
 
 @media (max-width: 720px) {
-  .control-panel { grid-template-columns: 1fr; }
+  .sticky-inner { grid-template-columns: 1fr; gap: 8px; }
   .wrap { padding: 18px 14px 60px; }
   header.hero h1 { font-size: 1.45rem; }
   .card { padding: 20px 18px 16px; }
-  .progress-text { min-width: 110px; font-size: 0.82rem; }
-  .card .qdomain { font-size: 0.72rem; }
-  .timer-display { font-size: 1.7rem; }
+  .timer-display { font-size: 1.4rem; }
+  .pbq-row { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+  .sticky-bar { margin: 0 -14px 16px; padding: 10px 14px; }
+  .completion-banner .big-score { font-size: 2rem; }
+}
+
+/* ============================================================= */
+/* WARNING + COMPLETION BANNER                                    */
+/* ============================================================= */
+.warning-banner {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  border-left: 4px solid var(--warn);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  color: var(--warn);
+  font-size: 0.92rem;
+}
+
+.completion-banner {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--good);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+  animation: fadeIn 260ms ease;
+}
+.completion-banner.fail { border-left-color: var(--bad); }
+.completion-banner h2 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+.completion-banner .verdict {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.completion-banner.pass .verdict { color: var(--good); }
+.completion-banner.fail .verdict { color: var(--bad); }
+.completion-banner .meta {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 4px 0 12px;
+}
+.completion-banner .big-score {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 6px 0;
+}
+.completion-banner .actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* Sticky-bar Reset button takes the ghost look explicitly */
+.timer-buttons .btn-mini.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
 }
