@@ -465,6 +465,11 @@
     // rather than clustered at the front.
     shuffle(pool);
 
+    // After shuffling, stamp each entry with its sequential exam-position
+    // number so the displayed "Question N" runs 1, 2, 3, ... in order even
+    // though the underlying question selection is random.
+    pool.forEach((entry, i) => { entry.examNum = i + 1; });
+
     return { warning: warning };
   }
 
@@ -580,8 +585,10 @@
 
     card.innerHTML =
       '<div class="qhead">' +
-        '<div class="qnum">Question ' + q.num +
-          ' <small style="color:var(--muted);font-weight:400;">(' + position + ' of ' + totalVisible + ' shown)</small></div>' +
+        '<div class="qnum">Question ' + entry.examNum +
+          ' <small style="color:var(--muted);font-weight:400;">of ' + pool.length +
+          (totalVisible !== pool.length ? ' &middot; ' + position + ' of ' + totalVisible + ' shown' : '') +
+          '</small></div>' +
         '<div class="qdomain">' + escapeHtml(q.domain) + '</div>' +
       '</div>' +
       (badges.length ? '<div class="badges">' + badges.join("") + '</div>' : "") +
@@ -658,8 +665,10 @@
 
     card.innerHTML =
       '<div class="qhead">' +
-        '<div class="qnum">' + escapeHtml(p.title) +
-          ' <small style="color:var(--muted);font-weight:400;">(' + position + ' of ' + totalVisible + ' shown)</small></div>' +
+        '<div class="qnum">Question ' + entry.examNum + ' &mdash; ' + escapeHtml(p.title) +
+          ' <small style="color:var(--muted);font-weight:400;">of ' + pool.length +
+          (totalVisible !== pool.length ? ' &middot; ' + position + ' of ' + totalVisible + ' shown' : '') +
+          '</small></div>' +
         '<div class="qdomain">' + escapeHtml(p.domain) + '</div>' +
       '</div>' +
       '<div class="badges"><span class="badge pbq">PBQ</span></div>' +
