@@ -32,6 +32,14 @@
   const TIMER_ALLOWED = [30, 45, 60, 75, 90];
   const TIMER_DEFAULT_BY_MODE = { 1: 60, 2: 90 };
 
+  // Exam size — the "All MCQs" pool mode produces a 90-question exam (matching
+  // the real SY0-701 length) drawn from whatever questions are in QUIZ_DATA.
+  // The pool can grow beyond 90 to add variety; the exam length stays 90.
+  const EXAM_TOTAL_DEFAULT = 90;
+  // Upper bound for the "Random subset" size input — capped by what's
+  // actually available in the pool.
+  const POOL_MAX = 200;
+
   const DOMAIN_NAMES = {
     1: "D1 General Concepts",
     2: "D2 Threats & Vulns",
@@ -130,19 +138,23 @@
     if (pbqMaxNote) pbqMaxNote.textContent = "/ " + maxPbqs + " PBQs available";
 
     // Pool-mode toggle (random subset row visibility)
+    const mcqAvailable = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
+    const poolUpperBound = Math.max(5, Math.min(POOL_MAX, mcqAvailable));
+    if (poolSizeEl) poolSizeEl.max = String(poolUpperBound);
+
     document.querySelectorAll('input[name="poolMode"]').forEach((r) => {
       r.addEventListener("change", () => {
         examSettings.poolMode = pickedValue("poolMode");
         if (poolSizeRow) {
           poolSizeRow.style.display = examSettings.poolMode === "random" ? "flex" : "none";
         }
-        examSettings.poolSize = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, 90);
+        examSettings.poolSize = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, poolUpperBound);
         renderConfigSummary();
       });
     });
     if (poolSizeEl) {
       poolSizeEl.addEventListener("input", () => {
-        examSettings.poolSize = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, 90);
+        examSettings.poolSize = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, poolUpperBound);
         renderConfigSummary();
       });
     }
@@ -263,11 +275,14 @@
   }
 
   function totalTargetQuestions() {
-    // Total target = MCQ pool size; PBQs are computed as a percentage of that.
+    // Total exam length. PBQ count is a percentage of this; MCQs fill the rest.
+    //   - "all"    => fixed-size full exam (EXAM_TOTAL_DEFAULT, e.g. 90)
+    //   - "random" => user-chosen subset, clamped to the pool size
     if (examSettings.poolMode === "random") {
-      return clamp(examSettings.poolSize, 5, 90);
+      const mcqAvailable = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
+      return clamp(examSettings.poolSize, 5, Math.max(5, mcqAvailable));
     }
-    return Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
+    return EXAM_TOTAL_DEFAULT;
   }
 
   function computePbqCount() {
@@ -326,9 +341,12 @@
 
   function onStartExam() {
     // Re-read all Dynamic_Options() values into examSettings
+    const mcqAvailable = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.length : 0;
+    const poolUpperBound = Math.max(5, Math.min(POOL_MAX, mcqAvailable));
+
     examSettings.attemptsAllowed = parseInt(pickedValue("attemptsMode"), 10);
     examSettings.poolMode        = pickedValue("poolMode");
-    examSettings.poolSize        = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, 90);
+    examSettings.poolSize        = clamp(parseInt(poolSizeEl.value, 10) || 30, 5, poolUpperBound);
     examSettings.pbqMode         = pickedValue("pbqMode");
     examSettings.includePBQs     = examSettings.pbqMode === "on";
 
