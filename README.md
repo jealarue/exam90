@@ -178,6 +178,51 @@ const TIMER_DEFAULT_BY_MODE = { 1: 60, 2: 90 };
 
 Pass threshold is in `computeFinalScore()` (`pct >= 83`).
 
+## PBQ drag-and-drop
+
+PBQs render as a board with one drop zone per category and a tray of
+unassigned item chips. To answer:
+
+- Drag a chip from the tray (or another zone) onto the matching category.
+- Or use the small dropdown built into each chip — keyboard- and
+  touch-friendly fallback.
+- Move chips between categories or back to the tray at any time before
+  Submit.
+- After Submit, each chip turns green (correct) or red (with the correct
+  category called out) so review is in-place.
+
+The board is fully accessible: every chip has an `aria-label`-ed select for
+keyboard users, and on touch devices the dropdown remains the easiest path.
+
+## Backups / rollback
+
+Every time a major refactor lands, the previous configuration is copied into
+`exam90/.backups/<change-name>-<timestamp>/`. To roll back, simply copy the
+files from the most recent backup directory back over the working files:
+
+```bash
+# Linux / macOS (replace BACKUP with the directory you want to restore)
+BACKUP=exam90/.backups/pre-pbq-dnd-YYYYMMDD-HHMMSS
+cp "$BACKUP/index.html"          exam90/
+cp "$BACKUP/README.md"           exam90/
+cp "$BACKUP/assets/quiz.js"      exam90/assets/
+cp "$BACKUP/assets/quiz-data.js" exam90/assets/
+cp "$BACKUP/assets/styles.css"   exam90/assets/
+```
+
+```powershell
+# Windows PowerShell
+$Backup = "exam90\.backups\pre-pbq-dnd-YYYYMMDD-HHMMSS"
+Copy-Item "$Backup\index.html"           "exam90\"          -Force
+Copy-Item "$Backup\README.md"            "exam90\"          -Force
+Copy-Item "$Backup\assets\quiz.js"       "exam90\assets\"   -Force
+Copy-Item "$Backup\assets\quiz-data.js"  "exam90\assets\"   -Force
+Copy-Item "$Backup\assets\styles.css"    "exam90\assets\"   -Force
+```
+
+The `.backups/` folder is a sibling of `assets/` and contains a full snapshot
+of every file that was modified, so rollback never needs git.
+
 ## Browser support
 
 Modern Chrome, Edge, Firefox, Safari. ES2015+ features; no transpilation needed.

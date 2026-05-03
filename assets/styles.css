@@ -679,6 +679,228 @@ header.hero .tag {
 .pbq-row.correct .pbq-feedback { color: var(--good); }
 
 /* ============================================================= */
+/* PAUSED-EXAM LOCKOUT                                            */
+/* ============================================================= */
+.paused-banner {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  border-left: 4px solid var(--warn);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 0 0 14px;
+  color: var(--warn);
+  font-size: 0.95rem;
+  text-align: center;
+  animation: fadeIn 200ms ease;
+  box-shadow: var(--shadow-sm);
+}
+.paused-banner strong { color: var(--warn); }
+.paused-banner em { font-style: normal; font-weight: 700; color: var(--accent); }
+
+/* When the exam is paused, dim and lock the question area. The sticky bar
+   (timer + filter + Reset) stays interactive so the user can resume. */
+.exam-paused #quiz {
+  opacity: 0.45;
+  filter: grayscale(0.35);
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 200ms ease, filter 200ms ease;
+}
+.exam-paused #quiz .card { cursor: not-allowed; }
+.exam-paused #quiz .option,
+.exam-paused #quiz .pbq-chip,
+.exam-paused #quiz .pbq-chip-select,
+.exam-paused #quiz .btn,
+.exam-paused #quiz .btn-mini { cursor: not-allowed !important; }
+
+/* ============================================================= */
+/* PBQ DRAG-AND-DROP BOARD                                         */
+/* ============================================================= */
+.pbq-help {
+  margin: 4px 0 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-style: italic;
+}
+.pbq-board {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pbq-zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.pbq-zone {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 110px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.pbq-zone-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0 2px 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.pbq-zone-drop {
+  flex: 1 1 auto;
+  min-height: 64px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(15,23,42,0.35);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.pbq-zone-drop.drag-over,
+.pbq-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(56,189,248,0.10);
+}
+.pbq-zone-drop:empty::after {
+  content: "drop here";
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: italic;
+  text-align: center;
+  align-self: center;
+  margin: auto;
+  padding: 6px;
+  opacity: 0.7;
+}
+
+.pbq-tray-section {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.pbq-tray-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.pbq-tray-label small {
+  color: var(--muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+}
+.pbq-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: rgba(15,23,42,0.35);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.pbq-tray.drag-over {
+  border-color: var(--accent);
+  background: rgba(56,189,248,0.10);
+}
+.pbq-tray:empty::after {
+  content: "all items assigned";
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-style: italic;
+  margin: auto;
+  padding: 8px;
+  opacity: 0.7;
+}
+
+/* Item chip (draggable) */
+.pbq-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 6px 10px 6px 6px;
+  cursor: grab;
+  font-size: 0.92rem;
+  flex-wrap: wrap;
+  user-select: none;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.pbq-chip:hover { border-color: var(--accent); }
+.pbq-chip:active { cursor: grabbing; }
+.pbq-chip.dragging {
+  opacity: 0.5;
+  transform: scale(0.97);
+  box-shadow: var(--shadow-sm);
+}
+.pbq-chip-handle {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: -2px;
+  padding: 0 4px;
+  cursor: grab;
+}
+.pbq-chip-label {
+  flex: 1 1 auto;
+  min-width: 100px;
+}
+.pbq-chip-select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  max-width: 160px;
+}
+.pbq-chip-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Resolved-state chip feedback */
+.pbq-chip.chip-correct {
+  border-left-color: var(--good);
+  background: var(--good-bg);
+}
+.pbq-chip.chip-wrong {
+  border-left-color: var(--bad);
+  background: var(--bad-bg);
+}
+.pbq-chip-feedback {
+  flex: 0 0 100%;
+  font-size: 0.78rem;
+  margin-top: 2px;
+  color: var(--muted);
+}
+.pbq-chip.chip-correct .pbq-chip-feedback { color: var(--good); }
+.pbq-chip.chip-wrong   .pbq-chip-feedback { color: var(--bad); }
+
+@media (max-width: 720px) {
+  .pbq-zones { grid-template-columns: 1fr 1fr; }
+  .pbq-zone-drop { min-height: 50px; }
+  .pbq-chip-label { min-width: 0; }
+  .pbq-chip-select { max-width: 120px; }
+}
+
+/* ============================================================= */
 /* FOOTER                                                          */
 /* ============================================================= */
 .bottom-nav {
