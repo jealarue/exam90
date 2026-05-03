@@ -540,6 +540,7 @@
     timerRunning = false;
     examStarted = false;
     examEnded = false;
+    setPausedUi(false);
 
     for (const k of Object.keys(state)) delete state[k];
     pool = [];
@@ -808,7 +809,17 @@
       '</div>' +
       '<div class="badges"><span class="badge pbq">PBQ</span></div>' +
       '<p class="pbq-prompt">' + escapeHtml(p.prompt) + '</p>' +
-      '<div class="pbq-grid" id="grid-' + entry.uid + '"></div>' +
+      '<p class="pbq-help">' +
+        'Drag each item into the matching category, or use the dropdown on the chip. ' +
+        'You can move chips between categories or back to the tray.' +
+      '</p>' +
+      '<div class="pbq-board" id="board-' + entry.uid + '">' +
+        '<div class="pbq-zones" id="zones-' + entry.uid + '"></div>' +
+        '<div class="pbq-tray-section">' +
+          '<div class="pbq-tray-label">Unassigned items <small>(drag from here)</small></div>' +
+          '<div class="pbq-tray pbq-dropzone" data-uid="' + entry.uid + '" data-cat="" aria-label="Unassigned items"></div>' +
+        '</div>' +
+      '</div>' +
       '<div class="submit-row" id="submit-row-' + entry.uid + '">' +
         '<button type="button" class="btn" id="submit-' + entry.uid + '" disabled>Submit Matches</button>' +
         '<span class="hint" id="hint-' + entry.uid + '">Make a selection for every item.</span>' +
@@ -816,65 +827,48 @@
       '<div class="status" id="status-' + entry.uid + '"></div>' +
       '<div class="explanation" id="exp-' + entry.uid + '"></div>';
 
-    const gridEl = card.querySelector("#grid-" + entry.uid);
+    const zonesEl = card.querySelector("#zones-" + entry.uid);
+    const trayEl  = card.querySelector(".pbq-tray");
 
-    p.items.forEach((item) => {
-      const row = document.createElement("div");
-      row.className = "pbq-row";
-      row.dataset.itemId = item.id;
+    // Build category drop zones
+    p.categories.forEach((cat, idx) => {
+      const zone = document.createElement("div");
+      zone.className = "pbq-zone";
+      zone.dataset.uid = entry.uid;
+      zone.dataset.cat = cat;
+      zone.dataset.catIdx = String(idx);
+      zone.setAttribute("aria-label", "Drop zone for category " + cat);
 
-      const sel = document.createElement("select");
-      sel.id = "sel-" + entry.uid + "-" + item.id;
-      sel.disabled = !!s.resolved;
+      const lbl = document.createElement("div");
+      lbl.className = "pbq-zone-label";
+      lbl.textContent = cat;
 
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = "— select category —";
-      sel.appendChild(placeholder);
+      const drop = document.createElement("div");
+      drop.className = "pbq-zone-drop pbq-dropzone";
+      drop.dataset.uid = entry.uid;
+      drop.dataset.cat = cat;
 
-      p.categories.forEach((cat) => {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.textContent = cat;
-        sel.appendChild(opt);
-      });
-
-      if (s.picks[item.id]) sel.value = s.picks[item.id];
-
-      sel.addEventListener("change", () => {
-        if (s.resolved) return;
-        s.picks[item.id] = sel.value;
-        updatePbqSubmitState(entry, card);
-      });
-
-      const itemEl = document.createElement("div");
-      itemEl.className = "pbq-item";
-      itemEl.textContent = item.label;
-
-      row.appendChild(itemEl);
-      row.appendChild(sel);
-
-      if (s.resolved || s.revealed) {
-        if (s.picks[item.id] === item.correct) {
-          row.classList.add("correct");
-        } else {
-          row.classList.add("wrong");
-        }
-        const fb = document.createElement("div");
-        fb.className = "pbq-feedback";
-        if (s.picks[item.id] === item.correct) {
-          fb.textContent = "✓ Correct: " + item.correct;
-        } else {
-          fb.textContent = (s.picks[item.id] ? "✗ You picked “" + s.picks[item.id] + "”. " : "✗ Not answered. ") +
-                           "Correct answer: " + item.correct;
-        }
-        row.appendChild(fb);
-      } else if (s.wrongItems && s.wrongItems.has(item.id)) {
-        row.classList.add("wrong");
-      }
-
-      gridEl.appendChild(row);
+      zone.appendChild(lbl);
+      zone.appendChild(drop);
+      zonesEl.appendChild(zone);
     });
+
+    // Place each item chip into its current parent (assigned zone, or tray)
+    p.items.forEach((item) => {
+      const chip = makePbqChip(entry, item, p);
+      const target = findPbqDropTarget(card, s.picks[item.id] || "") || trayEl;
+      target.appendChild(chip);
+    });
+
+    // Wire all dropzones (zone-drops AND the tray)
+    card.querySelectorAll(".pbq-dropzone").forEach((dz) => {
+      attachPbqDropHandlers(dz, entry);
+    });
+
+    // After resolution, decorate chips with feedback
+    if (s.resolved || s.revealed) {
+      decoratePbqResolution(card, entry, s, p);
+    }
 
     if (!s.resolved) {
       const submitBtn = card.querySelector("#submit-" + entry.uid);
@@ -895,6 +889,168 @@
     return card;
   }
 
+  // -------------------------------------------------------------------
+  // PBQ drag-and-drop helpers
+  // -------------------------------------------------------------------
+
+  function makePbqChip(entry, item, pbqDef) {
+    const s = state[entry.uid];
+    const chip = document.createElement("div");
+    chip.className = "pbq-chip";
+    chip.draggable = !s.resolved;
+    chip.dataset.itemId = item.id;
+    chip.dataset.uid    = entry.uid;
+    chip.setAttribute("role", "listitem");
+
+    const handle = document.createElement("span");
+    handle.className = "pbq-chip-handle";
+    handle.setAttribute("aria-hidden", "true");
+    handle.textContent = "⋮⋮"; // vertical-ellipsis pair as a grip
+
+    const lab = document.createElement("span");
+    lab.className = "pbq-chip-label";
+    lab.textContent = item.label;
+
+    const sel = document.createElement("select");
+    sel.className = "pbq-chip-select";
+    sel.id = "sel-" + entry.uid + "-" + item.id;
+    sel.disabled = !!s.resolved;
+    sel.setAttribute("aria-label", "Category for " + item.label);
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "— pick —";
+    sel.appendChild(placeholder);
+
+    pbqDef.categories.forEach((cat) => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      sel.appendChild(opt);
+    });
+    if (s.picks[item.id]) sel.value = s.picks[item.id];
+
+    sel.addEventListener("change", () => {
+      if (s.resolved) return;
+      if (isPaused()) {
+        // Revert the dropdown to its prior value and explain.
+        sel.value = s.picks[item.id] || "";
+        showToast("Timer paused — click Start to continue.");
+        return;
+      }
+      s.picks[item.id] = sel.value;
+      const card = document.getElementById("card-" + entry.uid);
+      if (card) movePbqChip(card, entry, item.id, sel.value);
+    });
+
+    // HTML5 DnD: this chip is the drag source
+    chip.addEventListener("dragstart", (e) => {
+      if (s.resolved || isPaused()) { e.preventDefault(); return; }
+      e.dataTransfer.effectAllowed = "move";
+      try {
+        e.dataTransfer.setData("text/plain",
+          JSON.stringify({ uid: entry.uid, itemId: item.id }));
+      } catch (_) {}
+      chip.classList.add("dragging");
+    });
+    chip.addEventListener("dragend", () => {
+      chip.classList.remove("dragging");
+    });
+
+    chip.appendChild(handle);
+    chip.appendChild(lab);
+    chip.appendChild(sel);
+    return chip;
+  }
+
+  function attachPbqDropHandlers(dz, entry) {
+    const s = state[entry.uid];
+
+    dz.addEventListener("dragover", (e) => {
+      if (s.resolved || isPaused()) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      dz.classList.add("drag-over");
+      // Also highlight the parent zone-card if applicable
+      const parentZone = dz.closest(".pbq-zone");
+      if (parentZone) parentZone.classList.add("drag-over");
+    });
+    dz.addEventListener("dragleave", () => {
+      dz.classList.remove("drag-over");
+      const parentZone = dz.closest(".pbq-zone");
+      if (parentZone) parentZone.classList.remove("drag-over");
+    });
+    dz.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dz.classList.remove("drag-over");
+      const parentZone = dz.closest(".pbq-zone");
+      if (parentZone) parentZone.classList.remove("drag-over");
+      if (s.resolved) return;
+      if (isPaused()) { showToast("Timer paused — click Start to continue."); return; }
+
+      let payload = {};
+      try {
+        payload = JSON.parse(e.dataTransfer.getData("text/plain") || "{}");
+      } catch (_) { payload = {}; }
+      if (!payload || payload.uid !== entry.uid || !payload.itemId) return;
+
+      const cat = dz.dataset.cat || "";
+      s.picks[payload.itemId] = cat;
+      const card = document.getElementById("card-" + entry.uid);
+      if (card) movePbqChip(card, entry, payload.itemId, cat);
+    });
+  }
+
+  function findPbqChip(card, itemId) {
+    const chips = card.querySelectorAll(".pbq-chip");
+    for (let i = 0; i < chips.length; i++) {
+      if (chips[i].dataset.itemId === itemId) return chips[i];
+    }
+    return null;
+  }
+
+  function findPbqDropTarget(card, cat) {
+    if (!cat) return card.querySelector(".pbq-tray");
+    const drops = card.querySelectorAll(".pbq-zone-drop");
+    for (let i = 0; i < drops.length; i++) {
+      if (drops[i].dataset.cat === cat) return drops[i];
+    }
+    return null;
+  }
+
+  function movePbqChip(card, entry, itemId, cat) {
+    const chip = findPbqChip(card, itemId);
+    if (!chip) return;
+    const target = findPbqDropTarget(card, cat || "");
+    if (target) target.appendChild(chip);
+    const sel = chip.querySelector(".pbq-chip-select");
+    if (sel) sel.value = cat || "";
+    updatePbqSubmitState(entry, card);
+  }
+
+  function decoratePbqResolution(card, entry, s, pbqDef) {
+    pbqDef.items.forEach((item) => {
+      const chip = findPbqChip(card, item.id);
+      if (!chip) return;
+      chip.draggable = false;
+      const sel = chip.querySelector(".pbq-chip-select");
+      if (sel) sel.disabled = true;
+
+      const isCorrect = s.picks[item.id] === item.correct;
+      chip.classList.add(isCorrect ? "chip-correct" : "chip-wrong");
+
+      // Append a small feedback line inside the chip
+      const fb = document.createElement("div");
+      fb.className = "pbq-chip-feedback";
+      if (isCorrect) {
+        fb.textContent = "✓ Correct";
+      } else {
+        fb.textContent = "✗ Correct: " + item.correct;
+      }
+      chip.appendChild(fb);
+    });
+  }
+
   // ===================================================================
   // MCQ — single-answer handling
   // ===================================================================
@@ -903,6 +1059,7 @@
     const q = entry.q;
     const s = state[entry.uid];
     if (s.resolved || examEnded) return;
+    if (isPaused()) { showToast("Timer paused — click Start to continue."); return; }
     const correct = q.correct;
 
     if (letter === correct) {
@@ -943,6 +1100,7 @@
   function handleMultiClick(entry, letter, btn, card) {
     const s = state[entry.uid];
     if (s.resolved || examEnded) return;
+    if (isPaused()) { showToast("Timer paused — click Start to continue."); return; }
     if (s.wrongPicks.includes(letter)) return;
 
     if (s.pending.has(letter)) {
@@ -959,6 +1117,7 @@
     const q = entry.q;
     const s = state[entry.uid];
     if (s.resolved || examEnded) return;
+    if (isPaused()) { showToast("Timer paused — click Start to continue."); return; }
 
     const correctSet = new Set(q.correct);
     const numNeeded = correctSet.size;
@@ -1065,6 +1224,7 @@
     const p = entry.q;
     const s = state[entry.uid];
     if (s.resolved || examEnded) return;
+    if (isPaused()) { showToast("Timer paused — click Start to continue."); return; }
 
     let correctCount = 0;
     s.wrongItems = new Set();
@@ -1216,6 +1376,7 @@
     timerRunning = false;
     tStart.disabled = true;
     tPause.disabled = true;
+    setPausedUi(false);
     renderSummary();
   }
 
@@ -1326,6 +1487,7 @@
     timerRunning = true;
     tStart.disabled = true;
     tPause.disabled = false;
+    setPausedUi(false);
     timerHandle = setInterval(() => {
       if (timerRemaining > 0) {
         timerRemaining -= 1;
@@ -1349,6 +1511,42 @@
     timerRunning = false;
     tStart.disabled = false;
     tPause.disabled = true;
+    setPausedUi(true);
+  }
+
+  // True while the exam is in progress but the timer is paused (and not
+  // expired/ended). Used to gate every answer interaction so a paused exam
+  // is read-only.
+  function isPaused() {
+    return examStarted && !timerRunning && !examEnded;
+  }
+
+  function setPausedUi(paused) {
+    if (!examScreen) return;
+    examScreen.classList.toggle("exam-paused", !!paused);
+
+    let banner = document.getElementById("pausedBanner");
+    if (paused) {
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "pausedBanner";
+        banner.className = "paused-banner";
+        banner.setAttribute("role", "status");
+        banner.innerHTML =
+          '<strong>⏸ Timer paused</strong> &mdash; answering is disabled. ' +
+          'Click <em>Start</em> in the timer box to resume the exam.';
+        // Insert just above the question list so it's prominent but doesn't
+        // cover the sticky timer/filter bar.
+        if (quizEl && quizEl.parentNode) {
+          quizEl.parentNode.insertBefore(banner, quizEl);
+        } else {
+          examScreen.appendChild(banner);
+        }
+      }
+      banner.hidden = false;
+    } else if (banner) {
+      banner.hidden = true;
+    }
   }
 
   function renderTimer() {
