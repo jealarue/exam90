@@ -489,7 +489,11 @@ header.hero .tag {
 
 .card .stem {
   margin: 6px 0 16px;
-  font-size: 1.02rem;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #f1f5f9;          /* slightly brighter than --text for emphasis */
+  letter-spacing: 0.005em;
+  line-height: 1.5;
 }
 
 /* Options */
@@ -628,8 +632,10 @@ header.hero .tag {
 /* ============================================================= */
 .pbq-prompt {
   margin: 4px 0 14px;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: #f1f5f9;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 .pbq-grid {
   display: flex;
@@ -677,6 +683,72 @@ header.hero .tag {
 }
 .pbq-row.wrong .pbq-feedback { color: var(--bad); }
 .pbq-row.correct .pbq-feedback { color: var(--good); }
+
+/* ============================================================= */
+/* QUICK PRESETS + UNTIMED CHECKBOX                                */
+/* ============================================================= */
+.preset-card { margin-bottom: 14px; }
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-preset {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease, color 120ms ease;
+}
+.btn-preset:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.btn-preset:active { transform: translateY(0); }
+.btn-preset.btn-preset-ghost {
+  border-style: dashed;
+  color: var(--muted);
+}
+.btn-preset.btn-preset-ghost:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+.btn-preset.active {
+  background: var(--accent);
+  color: #062235;
+  border-color: var(--accent);
+  animation: presetFlash 480ms ease;
+}
+@keyframes presetFlash {
+  0%   { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(56,189,248,0.25); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(56,189,248,0);    }
+}
+
+/* Generic checkbox row (Untimed toggle, future settings) */
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 0 4px;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+.checkbox-row input[type="checkbox"] {
+  margin-top: 4px;
+  accent-color: var(--accent);
+}
+
+/* When timerMinutes is disabled (untimed mode), visibly de-emphasize it */
+#timerMinutes:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* ============================================================= */
 /* PAUSED-EXAM LOCKOUT                                            */

@@ -4,6 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CompTIA Security+ (SY0-701) — Practice Exam</title>
+  <!-- Empty data: favicon suppresses Chrome's implicit /favicon.ico fetch,
+       which otherwise logs an "Unsafe attempt to load URL ... from frame"
+       warning when the page is opened directly from file:// (because every
+       file:// URL is treated as a unique origin). Harmless either way. -->
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" />
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
 <body>
@@ -28,6 +33,28 @@
         begins on Start. Settings lock once the exam starts &mdash; use Reset
         to return to this screen.
       </p>
+
+      <!-- ---- Quick presets — one-click setups for common scenarios ---- -->
+      <fieldset class="config-card preset-card" id="cardPresets">
+        <legend>Quick presets</legend>
+        <p class="config-help">One-click setups. You can still tweak any other option below afterward.</p>
+        <div class="preset-row" id="presetRow">
+          <button type="button" class="btn-preset" data-preset="full"
+                  title="90 questions, 90 min, 2-chance, 10% PBQs">Full Exam</button>
+          <button type="button" class="btn-preset" data-preset="quick"
+                  title="30 questions, 30 min, 2-chance, no PBQs">Quick Drill (30Q)</button>
+          <button type="button" class="btn-preset" data-preset="pbq-only"
+                  title="All PBQs, untimed, 2-chance">All PBQs</button>
+          <button type="button" class="btn-preset" data-preset="acronyms"
+                  title="Acronym MCQs only, 20 min">Acronyms Drill</button>
+          <button type="button" class="btn-preset" data-preset="scenarios"
+                  title="Scenario MCQs only, 30 min">Scenarios Drill</button>
+          <button type="button" class="btn-preset" data-preset="realistic"
+                  title="90 questions, 90 min, 1-chance, 10% PBQs — exam-realistic">Realistic 1-Chance</button>
+          <button type="button" class="btn-preset btn-preset-ghost" data-preset="reset"
+                  title="Reset all options to defaults">Reset to Defaults</button>
+        </div>
+      </fieldset>
 
       <div class="config-grid">
         <!-- ---- Exam mode (1 chance vs 2 chance) ---- -->
@@ -55,6 +82,10 @@
               <option value="75">75 minutes</option>
               <option value="90" selected>90 minutes (full)</option>
             </select>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="untimedMode" />
+            <span><strong>Untimed (study mode)</strong> &mdash; turn off the clock; pause-lockout is also disabled</span>
           </label>
           <p class="config-help" id="timerHelp">
             Allowed range 30&ndash;90&nbsp;min. Default 90 for 2-chance mode,
@@ -106,6 +137,7 @@
               <option value="5">Domain 5 — Program Mgmt</option>
               <option value="acronym">Acronym Questions Only</option>
               <option value="scenario">Scenario Questions Only</option>
+              <option value="pbq">All PBQs Only</option>
             </select>
           </label>
           <p class="config-help" id="domainInfo">All domains selected. Pool size will adjust based on domain.</p>

@@ -45,8 +45,11 @@ draws also rotate.
 
 Before the timer starts, configure your practice run:
 
+- **Quick Presets** (one-click setups, top of the start screen): `Full Exam` · `Quick Drill (30Q)` · `All PBQs` · `Acronyms Drill` · `Scenarios Drill` · `Realistic 1-Chance` · `Reset to Defaults`. Click a preset to populate every other option in one tap; you can still tweak any field afterward.
 - **Exam mode**: `1 chance per question` (exam-realistic, fail on first wrong) or `2 chances` (partial credit: 1.0 first attempt, 0.5 second, 0 if both wrong)
 - **Timer**: 30–90 minutes (default: 90 min for 2-chance, 60 min for 1-chance)
+- **Untimed (study mode)**: a checkbox in the Timer card turns the clock off entirely — no countdown, no pause-lockout, no time-up auto-grading. Useful for self-paced review.
+- **Domain focus**: All domains, single domain (1–5), Acronyms only, Scenarios only, or **All PBQs only** (drops MCQs entirely and runs through every PBQ in the pool).
 - **Question pool**: All 90 questions (full domain-weighted exam) or a random subset of N total questions. The pool size is the **total exam size** — MCQs and PBQs are drawn together to fill it.
 - **PBQs**: On/Off toggle with percentage (0%, 10%, 20%, 30%, or custom). **PBQs replace random MCQs in the pool — they do not add to the total.** A 90-question exam with 10% PBQs is 9 PBQs + 81 MCQs (= 90), not 99. If the requested percentage exceeds the available PBQs, the rest is filled with MCQs and a warning is shown.
 - **Randomized question order**: Each Start Exam click reshuffles the draw and the presentation order, so PBQs are interspersed with MCQs rather than clustered at the start or end.

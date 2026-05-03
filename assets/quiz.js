@@ -55,6 +55,7 @@
   const examSettings = {
     attemptsAllowed: 2,        // 1 | 2
     timerMinutes:    90,       // 30..90 (TIMER_ALLOWED)
+    untimed:         false,    // when true, no timer + no pause-lockout
     includePBQs:     true,     // mirror of pbqMode
     pbqMode:         "on",     // "on" | "off"
     pbqPercent:      10,       // 0/10/20/30 or custom value
@@ -62,7 +63,54 @@
     pbqCustomPercent: 10,      // last typed custom %
     poolMode:        "all",    // "all" | "random"
     poolSize:        30,       // when poolMode === "random"
-    domainFilter:    "all"     // "all" | "1"|"2"|"3"|"4"|"5" | "acronym" | "scenario"
+    domainFilter:    "all"     // "all" | "1"|"2"|"3"|"4"|"5" | "acronym" | "scenario" | "pbq"
+  };
+
+  // Quick-preset definitions used by the start-screen preset buttons.
+  // Each preset is a partial examSettings object that gets merged on click.
+  const PRESETS = {
+    "full": {
+      label: "Full Exam",
+      attemptsAllowed: 2, timerMinutes: 90, untimed: false,
+      pbqMode: "on", pbqPercent: 10, pbqPercentMode: "10",
+      poolMode: "all", domainFilter: "all"
+    },
+    "quick": {
+      label: "Quick Drill",
+      attemptsAllowed: 2, timerMinutes: 30, untimed: false,
+      pbqMode: "off", pbqPercent: 0, pbqPercentMode: "0",
+      poolMode: "random", poolSize: 30, domainFilter: "all"
+    },
+    "pbq-only": {
+      label: "All PBQs",
+      attemptsAllowed: 2, timerMinutes: 30, untimed: true,
+      pbqMode: "off", pbqPercent: 0, pbqPercentMode: "0",
+      poolMode: "all", domainFilter: "pbq"
+    },
+    "acronyms": {
+      label: "Acronyms Drill",
+      attemptsAllowed: 2, timerMinutes: 30, untimed: false,
+      pbqMode: "off", pbqPercent: 0, pbqPercentMode: "0",
+      poolMode: "all", domainFilter: "acronym"
+    },
+    "scenarios": {
+      label: "Scenarios Drill",
+      attemptsAllowed: 2, timerMinutes: 30, untimed: false,
+      pbqMode: "off", pbqPercent: 0, pbqPercentMode: "0",
+      poolMode: "all", domainFilter: "scenario"
+    },
+    "realistic": {
+      label: "Realistic 1-Chance",
+      attemptsAllowed: 1, timerMinutes: 90, untimed: false,
+      pbqMode: "on", pbqPercent: 10, pbqPercentMode: "10",
+      poolMode: "all", domainFilter: "all"
+    },
+    "reset": {
+      label: "Reset to Defaults",
+      attemptsAllowed: 2, timerMinutes: 90, untimed: false,
+      pbqMode: "on", pbqPercent: 10, pbqPercentMode: "10",
+      poolMode: "all", poolSize: 30, domainFilter: "all"
+    }
   };
 
   // ===================================================================
@@ -98,6 +146,8 @@
   const poolModeInfo    = $("poolModeInfo");
   const poolModeInfoText = $("poolModeInfoText");
   const configSummary   = $("configSummary");
+  const presetRow       = $("presetRow");
+  const untimedEl       = $("untimedMode");
 
   // Exam screen
   const examScreen   = $("examScreen");
@@ -200,6 +250,24 @@
       });
     }
 
+    // Untimed / Study-mode toggle
+    if (untimedEl) {
+      untimedEl.addEventListener("change", () => {
+        examSettings.untimed = !!untimedEl.checked;
+        updateUntimedUi();
+        renderConfigSummary();
+      });
+    }
+
+    // Quick-preset buttons
+    if (presetRow) {
+      presetRow.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-preset]");
+        if (!btn) return;
+        applyPreset(btn.dataset.preset);
+      });
+    }
+
     // PBQ mode (on/off)
     document.querySelectorAll('input[name="pbqMode"]').forEach((r) => {
       r.addEventListener("change", () => {
@@ -241,10 +309,11 @@
     exportMissesBtn.addEventListener("click", () => exportMissesAs("json"));
     clearMissesBtn.addEventListener("click", clearMisses);
 
-    // Pre-render history preview
+    // Pre-render history preview + initial form sync
     renderMissHistory();
     applyPbqRowsVisibility();
     renderTimerLabel();
+    updateUntimedUi();
     renderConfigSummary();
 
     // Exam-screen wiring
@@ -277,6 +346,64 @@
     }
   }
 
+  // Apply a quick preset by name (see PRESETS). Updates examSettings and
+  // syncs the form controls so the user sees the new values immediately.
+  function applyPreset(name) {
+    const preset = PRESETS[name];
+    if (!preset) return;
+    Object.assign(examSettings, preset);
+    examSettings.includePBQs = examSettings.pbqMode === "on";
+    syncFormFromSettings();
+    updatePoolSizeMax();
+    updateUntimedUi();
+    applyPbqRowsVisibility();
+    renderTimerLabel();
+    renderConfigSummary();
+    flashPresetApplied(name);
+  }
+
+  function syncFormFromSettings() {
+    // Radios: attemptsMode, pbqMode, poolMode
+    document.querySelectorAll('input[name="attemptsMode"]').forEach((r) => {
+      r.checked = (parseInt(r.value, 10) === examSettings.attemptsAllowed);
+    });
+    document.querySelectorAll('input[name="pbqMode"]').forEach((r) => {
+      r.checked = (r.value === examSettings.pbqMode);
+    });
+    document.querySelectorAll('input[name="poolMode"]').forEach((r) => {
+      r.checked = (r.value === examSettings.poolMode);
+    });
+    // Selects: timer, pbqPercent, domainFilter, poolSize
+    if (timerMinutesEl) timerMinutesEl.value = String(examSettings.timerMinutes);
+    if (pbqPercentEl)   pbqPercentEl.value   = String(examSettings.pbqPercentMode);
+    if (startDomainFilterEl) startDomainFilterEl.value = String(examSettings.domainFilter);
+    if (poolSizeEl)     poolSizeEl.value     = String(examSettings.poolSize);
+    if (pbqCustomEl)    pbqCustomEl.value    = String(examSettings.pbqCustomPercent);
+    // Checkbox: untimed
+    if (untimedEl)      untimedEl.checked    = !!examSettings.untimed;
+    // Pool size row visibility
+    if (poolSizeRow) {
+      poolSizeRow.style.display = examSettings.poolMode === "random" ? "flex" : "none";
+    }
+  }
+
+  function flashPresetApplied(name) {
+    if (!presetRow) return;
+    presetRow.querySelectorAll(".btn-preset").forEach((b) => {
+      b.classList.toggle("active", b.dataset.preset === name);
+    });
+    setTimeout(() => {
+      presetRow.querySelectorAll(".btn-preset.active").forEach((b) => b.classList.remove("active"));
+    }, 1200);
+  }
+
+  function updateUntimedUi() {
+    // When untimed is on, dim the timer-minutes select since it has no effect.
+    if (timerMinutesEl) {
+      timerMinutesEl.disabled = !!examSettings.untimed;
+    }
+  }
+
   function clampPct(n) {
     if (isNaN(n)) return 0;
     return Math.max(0, Math.min(100, n));
@@ -288,6 +415,9 @@
 
     if (domainVal === "all") {
       return mcqsAll.length + pbqsAll.length;
+    }
+    if (domainVal === "pbq") {
+      return pbqsAll.length;
     }
 
     let count = 0;
@@ -314,6 +444,8 @@
     if (domainInfoEl) {
       if (isAllDomains) {
         domainInfoEl.textContent = "All domains selected. " + available + " questions available.";
+      } else if (examSettings.domainFilter === "pbq") {
+        domainInfoEl.textContent = "All PBQs only. " + available + " PBQ" + (available === 1 ? "" : "s") + " available.";
       } else {
         const domainName = DOMAIN_NAMES[examSettings.domainFilter] || examSettings.domainFilter;
         domainInfoEl.textContent = domainName + " selected. " + available + " questions available.";
@@ -429,7 +561,9 @@
     const mcqUsed = Math.max(0, totalQ - pbqUsed);
 
     const pillMode  = examSettings.attemptsAllowed === 1 ? "1 chance" : "2 chances";
-    const pillTimer = examSettings.timerMinutes + " min";
+    const pillTimer = examSettings.untimed
+      ? "Untimed (study mode)"
+      : (examSettings.timerMinutes + " min");
     const pillPool  = examSettings.poolMode === "random"
       ? ("Random " + totalQ + "-question exam")
       : ("Full " + totalQ + "-question exam");
@@ -468,6 +602,9 @@
     examSettings.pbqMode         = pickedValue("pbqMode");
     examSettings.includePBQs     = examSettings.pbqMode === "on";
 
+    // Untimed / study mode
+    examSettings.untimed = !!(untimedEl && untimedEl.checked);
+
     // Timer must obey 30..90 range; snap to allowed list
     const tm = parseInt(timerMinutesEl.value, 10);
     examSettings.timerMinutes = TIMER_ALLOWED.includes(tm)
@@ -498,8 +635,9 @@
 
     // Update sticky timer-mode pill
     if (tModePill) {
+      const timerStr = examSettings.untimed ? "untimed" : (examSettings.timerMinutes + "m");
       tModePill.textContent = (examSettings.attemptsAllowed === 1 ? "1-chance" : "2-chance") +
-                              " · " + examSettings.timerMinutes + "m";
+                              " · " + timerStr;
     }
 
     // Switch UI
@@ -513,8 +651,13 @@
     timerRemaining = timerSeconds;
     timerRunning   = false;
     if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
-    tStart.disabled = false;
-    tPause.disabled = true;
+    if (examSettings.untimed) {
+      tStart.disabled = true;
+      tPause.disabled = true;
+    } else {
+      tStart.disabled = false;
+      tPause.disabled = true;
+    }
     if (tReset) tReset.disabled = false;
     renderTimer();
 
@@ -566,7 +709,20 @@
     let pbqsAll = Array.isArray(window.PBQ_DATA)  ? window.PBQ_DATA.slice()  : [];
     let mcqsAll = Array.isArray(window.QUIZ_DATA) ? window.QUIZ_DATA.slice() : [];
 
-    // Apply domain filter
+    // Special PBQ-only filter: all PBQs, no MCQs.
+    // We force-enable PBQs and skip the % math entirely so the pool is just PBQs.
+    if (examSettings.domainFilter === "pbq") {
+      mcqsAll = [];
+      shuffle(pbqsAll);
+      pbqsAll.forEach((p) => {
+        pool.push({ kind: "pbq", uid: "pbq-" + p.pbqId, q: p });
+      });
+      shuffle(pool);
+      pool.forEach((entry, i) => { entry.examNum = i + 1; });
+      return { warning: "" };
+    }
+
+    // Apply domain filter (excluding "pbq" handled above)
     if (examSettings.domainFilter !== "all") {
       if (examSettings.domainFilter === "acronym") {
         mcqsAll = mcqsAll.filter((q) => q.acronym);
@@ -1483,6 +1639,13 @@
   // ===================================================================
 
   function startTimer() {
+    if (examSettings.untimed) {
+      // No-op in untimed mode. Buttons stay reflective of "no clock to start".
+      tStart.disabled = true;
+      tPause.disabled = true;
+      setPausedUi(false);
+      return;
+    }
     if (timerRunning || examEnded) return;
     timerRunning = true;
     tStart.disabled = true;
@@ -1516,8 +1679,9 @@
 
   // True while the exam is in progress but the timer is paused (and not
   // expired/ended). Used to gate every answer interaction so a paused exam
-  // is read-only.
+  // is read-only. In untimed/study mode there's no clock and no lockout.
   function isPaused() {
+    if (examSettings.untimed) return false;
     return examStarted && !timerRunning && !examEnded;
   }
 
@@ -1550,6 +1714,11 @@
   }
 
   function renderTimer() {
+    if (examSettings.untimed) {
+      tDisplay.textContent = "∞";
+      tDisplay.classList.remove("warning", "expired");
+      return;
+    }
     const m = Math.floor(timerRemaining / 60);
     const s = timerRemaining % 60;
     tDisplay.textContent =
