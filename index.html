@@ -51,6 +51,8 @@
                   title="Scenario MCQs only, 30 min">Scenarios Drill</button>
           <button type="button" class="btn-preset" data-preset="realistic"
                   title="90 questions, 90 min, 1-chance, 10% PBQs — exam-realistic">Realistic 1-Chance</button>
+          <button type="button" class="btn-preset" data-preset="weak"
+                  title="30 questions: 50% from your past misses + 50% fresh from your weakest domains">Practice Weak Areas</button>
           <button type="button" class="btn-preset btn-preset-ghost" data-preset="reset"
                   title="Reset all options to defaults">Reset to Defaults</button>
         </div>
@@ -138,6 +140,7 @@
               <option value="acronym">Acronym Questions Only</option>
               <option value="scenario">Scenario Questions Only</option>
               <option value="pbq">All PBQs Only</option>
+              <option value="weak">Weak Areas (50/50 mix)</option>
             </select>
           </label>
           <p class="config-help" id="domainInfo">All domains selected. Pool size will adjust based on domain.</p>
@@ -176,6 +179,7 @@
       <div class="start-actions">
         <button class="btn btn-large" id="startExamBtn" type="button">Start Exam</button>
         <button class="btn ghost" id="viewHistoryBtn" type="button">View Past Mistakes</button>
+        <button class="btn ghost" id="reviewFailLogBtn" type="button">Review Fail Log</button>
       </div>
 
       <!-- Persistent miss history preview -->
@@ -189,6 +193,42 @@
         </div>
         <div id="missHistoryBody"></div>
       </section>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- REVIEW SCREEN: dedicated walkthrough of the persistent     -->
+    <!-- miss log. Hidden until "Review Fail Log" is clicked.        -->
+    <!-- ========================================================== -->
+    <section class="review-screen" id="reviewScreen" hidden aria-labelledby="reviewHeading">
+      <div class="review-header">
+        <div>
+          <h2 id="reviewHeading">Fail Log Review</h2>
+          <p class="muted-tiny" id="reviewSub">Walking through every question you've missed across all sessions.</p>
+        </div>
+        <div class="review-controls">
+          <label class="muted-tiny" for="reviewDomainFilter">Filter:</label>
+          <select id="reviewDomainFilter" aria-label="Filter review by domain">
+            <option value="all">All domains</option>
+            <option value="1">Domain 1 — General Concepts</option>
+            <option value="2">Domain 2 — Threats &amp; Vulns</option>
+            <option value="3">Domain 3 — Architecture</option>
+            <option value="4">Domain 4 — Operations</option>
+            <option value="5">Domain 5 — Program Mgmt</option>
+            <option value="pbq">PBQs only</option>
+          </select>
+          <span id="reviewCounter" class="review-counter">0 of 0</span>
+          <button class="btn ghost" id="reviewCloseBtn" type="button">Back to Start</button>
+        </div>
+      </div>
+
+      <div class="review-card" id="reviewCard">
+        <p class="muted-tiny">No misses recorded yet — take an exam to build a fail log.</p>
+      </div>
+
+      <div class="review-nav">
+        <button class="btn ghost" id="reviewPrevBtn" type="button" disabled>&larr; Previous</button>
+        <button class="btn"        id="reviewNextBtn" type="button" disabled>Next &rarr;</button>
+      </div>
     </section>
 
     <!-- ========================================================== -->

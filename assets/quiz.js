@@ -105,6 +105,12 @@
       pbqMode: "on", pbqPercent: 10, pbqPercentMode: "10",
       poolMode: "all", domainFilter: "all"
     },
+    "weak": {
+      label: "Practice Weak Areas",
+      attemptsAllowed: 2, timerMinutes: 30, untimed: false,
+      pbqMode: "off", pbqPercent: 0, pbqPercentMode: "0",
+      poolMode: "random", poolSize: 30, domainFilter: "weak"
+    },
     "reset": {
       label: "Reset to Defaults",
       attemptsAllowed: 2, timerMinutes: 90, untimed: false,
@@ -148,6 +154,17 @@
   const configSummary   = $("configSummary");
   const presetRow       = $("presetRow");
   const untimedEl       = $("untimedMode");
+  const reviewFailLogBtn = $("reviewFailLogBtn");
+
+  // Review screen
+  const reviewScreen        = $("reviewScreen");
+  const reviewCard          = $("reviewCard");
+  const reviewSub           = $("reviewSub");
+  const reviewCounter       = $("reviewCounter");
+  const reviewDomainFilter  = $("reviewDomainFilter");
+  const reviewPrevBtn       = $("reviewPrevBtn");
+  const reviewNextBtn       = $("reviewNextBtn");
+  const reviewCloseBtn      = $("reviewCloseBtn");
 
   // Exam screen
   const examScreen   = $("examScreen");
@@ -183,6 +200,10 @@
   let timerRunning   = false;
   let examStarted    = false;
   let examEnded      = false;
+
+  // Review-screen state
+  let reviewItems = [];     // filtered subset of loadMisses()
+  let reviewIndex = 0;      // current item
 
   // ===================================================================
   // Boot
@@ -316,6 +337,17 @@
     updateUntimedUi();
     renderConfigSummary();
 
+    // Review-screen wiring
+    if (reviewFailLogBtn) reviewFailLogBtn.addEventListener("click", () => openReview());
+    if (reviewCloseBtn)   reviewCloseBtn.addEventListener("click", closeReview);
+    if (reviewPrevBtn)    reviewPrevBtn.addEventListener("click", () => navReview(-1));
+    if (reviewNextBtn)    reviewNextBtn.addEventListener("click", () => navReview(+1));
+    if (reviewDomainFilter) {
+      reviewDomainFilter.addEventListener("change", () => {
+        applyReviewFilter(reviewDomainFilter.value);
+      });
+    }
+
     // Exam-screen wiring
     resetBtn.addEventListener("click", onResetExam);
     if (failLogBtn) failLogBtn.addEventListener("click", () => exportMissesAs("log"));
@@ -419,6 +451,12 @@
     if (domainVal === "pbq") {
       return pbqsAll.length;
     }
+    if (domainVal === "weak") {
+      // Weak Areas pool ≈ literal misses + fresh from weak domains; we cap
+      // the reported "available" count to the requested poolSize so the UI
+      // shows what the user will actually get.
+      return Math.max(1, examSettings.poolSize || 30);
+    }
 
     let count = 0;
     if (domainVal === "acronym") {
@@ -446,6 +484,14 @@
         domainInfoEl.textContent = "All domains selected. " + available + " questions available.";
       } else if (examSettings.domainFilter === "pbq") {
         domainInfoEl.textContent = "All PBQs only. " + available + " PBQ" + (available === 1 ? "" : "s") + " available.";
+      } else if (examSettings.domainFilter === "weak") {
+        const misses = loadMisses();
+        const uniqueMissedNums = new Set(misses.filter((m) => m.kind === "mcq" && m.num != null).map((m) => m.num));
+        const domains = new Set(misses.map((m) => m.domainNum).filter((d) => d != null));
+        domainInfoEl.textContent =
+          "Weak Areas mode: 50% from your past misses (" + uniqueMissedNums.size +
+          " unique miss" + (uniqueMissedNums.size === 1 ? "" : "es") + ") + 50% fresh from your weakest domains (" +
+          domains.size + " domain" + (domains.size === 1 ? "" : "s") + " in history).";
       } else {
         const domainName = DOMAIN_NAMES[examSettings.domainFilter] || examSettings.domainFilter;
         domainInfoEl.textContent = domainName + " selected. " + available + " questions available.";
@@ -567,10 +613,12 @@
     const pillPool  = examSettings.poolMode === "random"
       ? ("Random " + totalQ + "-question exam")
       : ("Full " + totalQ + "-question exam");
-    const pillMix   = examSettings.includePBQs
-      ? ("Mix: " + mcqUsed + " MCQ + " + pbqUsed + " PBQ" +
-         "  (" + examSettings.pbqPercent + "% PBQs of " + totalQ + ")")
-      : ("Mix: " + mcqUsed + " MCQ + 0 PBQ");
+    const pillMix   = examSettings.domainFilter === "weak"
+      ? ("Mix: 50% past misses + 50% weak domains")
+      : (examSettings.includePBQs
+          ? ("Mix: " + mcqUsed + " MCQ + " + pbqUsed + " PBQ" +
+             "  (" + examSettings.pbqPercent + "% PBQs of " + totalQ + ")")
+          : ("Mix: " + mcqUsed + " MCQ + 0 PBQ"));
 
     let warn = "";
     if (examSettings.includePBQs && pbqInfo.desired > pbqInfo.available) {
@@ -722,6 +770,19 @@
       return { warning: "" };
     }
 
+    // Special "weak areas" filter: 50/50 hybrid pool.
+    //   - Half = literal repeats of MCQs the user has missed in past sessions
+    //   - Half = fresh MCQs from the user's weakest domains, weighted by miss count
+    if (examSettings.domainFilter === "weak") {
+      const result = buildWeakAreasPool(totalTargetQuestions(), mcqsAll);
+      result.entries.forEach((q) => {
+        pool.push({ kind: "mcq", uid: "mcq-" + q.num, q: q });
+      });
+      shuffle(pool);
+      pool.forEach((entry, i) => { entry.examNum = i + 1; });
+      return { warning: result.warning };
+    }
+
     // Apply domain filter (excluding "pbq" handled above)
     if (examSettings.domainFilter !== "all") {
       if (examSettings.domainFilter === "acronym") {
@@ -782,6 +843,74 @@
     pool.forEach((entry, i) => { entry.examNum = i + 1; });
 
     return { warning: warning };
+  }
+
+  // Build a Weak-Areas pool. Returns { entries: [QUIZ_DATA items], warning }.
+  // Composition (when enough data exists):
+  //   - 50% literal repeats: MCQs the user has actually missed before
+  //   - 50% fresh from weak domains: MCQs from the domains where misses
+  //     accumulate most, weighted by miss count, excluding the literal half.
+  // Falls back gracefully when miss history is sparse.
+  function buildWeakAreasPool(total, mcqsAll) {
+    const misses = loadMisses();
+
+    if (misses.length === 0) {
+      // No history yet — fall back to a plain random sample so the user
+      // still gets a quiz, and surface a clear note about it.
+      const fallback = mcqsAll.slice();
+      shuffle(fallback);
+      return {
+        entries: fallback.slice(0, total),
+        warning: "No miss history yet — Weak Areas mode falls back to a random sample. " +
+                 "Take a regular exam first; future weak-areas runs will then bias toward " +
+                 "questions and domains you've missed."
+      };
+    }
+
+    // Build sets / counts from the miss log
+    const missedNums = new Set();
+    const domainMissCounts = {};
+    misses.forEach((m) => {
+      if (m.kind === "mcq" && m.num != null) missedNums.add(m.num);
+      if (m.domainNum != null) {
+        domainMissCounts[m.domainNum] = (domainMissCounts[m.domainNum] || 0) + 1;
+      }
+    });
+
+    const halfTotal = Math.floor(total / 2);
+
+    // ---- LITERAL HALF ----
+    const literalCandidates = mcqsAll.filter((q) => missedNums.has(q.num));
+    shuffle(literalCandidates);
+    const literalPick = literalCandidates.slice(0, halfTotal);
+    const literalIds  = new Set(literalPick.map((q) => q.num));
+
+    // ---- FRESH HALF ----
+    const freshNeeded = total - literalPick.length;
+    // Prefer questions from domains with miss history, weighted by miss count.
+    // Implementation: bucket all candidate MCQs by domain, then draw rounds.
+    const freshCandidates = mcqsAll.filter((q) => !literalIds.has(q.num));
+    shuffle(freshCandidates);
+
+    // Sort weak-domain candidates ahead of others, weighted by miss count desc.
+    freshCandidates.sort((a, b) => {
+      const wA = domainMissCounts[a.domainNum] || 0;
+      const wB = domainMissCounts[b.domainNum] || 0;
+      if (wA !== wB) return wB - wA; // highest miss count first
+      return 0;                       // preserve shuffled order on ties
+    });
+
+    const freshPick = freshCandidates.slice(0, freshNeeded);
+
+    // ---- WARNING (if literal half short) ----
+    let warning = "";
+    if (literalPick.length < halfTotal) {
+      warning = "Weak Areas: only " + literalPick.length +
+                " unique past-missed question" + (literalPick.length === 1 ? "" : "s") +
+                " available; the remainder is fresh from your weakest domains.";
+    }
+
+    return { entries: literalPick.concat(freshPick), warning: warning };
   }
 
   function seedState() {
@@ -1594,9 +1723,10 @@
         r.missed + ' missed' +
       '</p>' +
       '<div class="actions">' +
-        '<button class="btn" id="bannerExportFailLog" type="button">Export Fail Log (.txt)</button>' +
+        '<button class="btn" id="bannerReviewFailLog" type="button">Review Fail Log</button>' +
+        '<button class="btn ghost" id="bannerExportFailLog" type="button">Export Fail Log (.txt)</button>' +
         '<button class="btn ghost" id="bannerExportJson" type="button">Export Miss Log (.json)</button>' +
-        '<button class="btn ghost" id="bannerReviewMissed" type="button">Review missed only</button>' +
+        '<button class="btn ghost" id="bannerReviewMissed" type="button">Filter to missed only</button>' +
       '</div>';
 
     // Per-domain summary
@@ -1623,6 +1753,7 @@
     quizEl.prepend(summary);
     quizEl.prepend(banner);
 
+    banner.querySelector("#bannerReviewFailLog").addEventListener("click", () => openReview());
     banner.querySelector("#bannerExportFailLog").addEventListener("click", () => exportMissesAs("log"));
     banner.querySelector("#bannerExportJson").addEventListener("click", () => exportMissesAs("json"));
     banner.querySelector("#bannerReviewMissed").addEventListener("click", () => {
@@ -1920,6 +2051,144 @@
       viewHistoryBtn.textContent = "View Past Mistakes";
     }
     renderMissHistory();
+  }
+
+  // ===================================================================
+  // Fail Log Review screen — walk through every persisted miss with full
+  // context: stem, your answer, correct answer, explanation, mode, etc.
+  // ===================================================================
+
+  function openReview() {
+    if (!reviewScreen) return;
+    // Hide the other screens
+    if (startScreen) startScreen.hidden = true;
+    if (examScreen)  examScreen.hidden  = true;
+    reviewScreen.hidden = false;
+    // Reset filter to "all" each open
+    if (reviewDomainFilter) reviewDomainFilter.value = "all";
+    applyReviewFilter("all");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function closeReview() {
+    if (!reviewScreen) return;
+    reviewScreen.hidden = true;
+    // Return to wherever made sense — start screen if no exam in progress,
+    // exam screen if we were mid-exam (e.g. arrived from completion banner).
+    if (examStarted && examScreen) {
+      examScreen.hidden = false;
+    } else if (startScreen) {
+      startScreen.hidden = false;
+      renderMissHistory();
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function applyReviewFilter(filter) {
+    const all = loadMisses().slice().reverse(); // newest first
+    if (filter === "all") {
+      reviewItems = all;
+    } else if (filter === "pbq") {
+      reviewItems = all.filter((m) => m.kind === "pbq");
+    } else {
+      const dn = parseInt(filter, 10);
+      if (!isNaN(dn)) {
+        reviewItems = all.filter((m) => m.domainNum === dn);
+      } else {
+        reviewItems = all;
+      }
+    }
+    reviewIndex = 0;
+    renderReviewItem();
+  }
+
+  function navReview(dir) {
+    if (reviewItems.length === 0) return;
+    reviewIndex = Math.max(0, Math.min(reviewItems.length - 1, reviewIndex + dir));
+    renderReviewItem();
+  }
+
+  function renderReviewItem() {
+    if (!reviewCard) return;
+
+    const total = reviewItems.length;
+    if (reviewCounter) reviewCounter.textContent = total === 0
+      ? "0 of 0"
+      : (reviewIndex + 1) + " of " + total;
+
+    if (reviewPrevBtn) reviewPrevBtn.disabled = (reviewIndex <= 0 || total === 0);
+    if (reviewNextBtn) reviewNextBtn.disabled = (reviewIndex >= total - 1 || total === 0);
+
+    if (total === 0) {
+      reviewCard.innerHTML =
+        '<div class="review-empty">' +
+          '<p>No misses match this filter.</p>' +
+          '<p class="muted-tiny">Take an exam (or change the filter) to populate the fail log.</p>' +
+        '</div>';
+      return;
+    }
+
+    const m = reviewItems[reviewIndex];
+    const when = (() => {
+      try { return new Date(m.date).toLocaleString(); } catch (_) { return m.date || "(unknown)"; }
+    })();
+    const modeStr  = m.examMode || "—";
+    const timerStr = m.timerMinutes != null ? (m.timerMinutes + " min") : "—";
+
+    if (m.kind === "mcq") {
+      const yourPick = (m.userPickText && m.userPickText.length)
+        ? m.userPickText.join(", ")
+        : ((m.userPicks || []).join(", ") || "(none)");
+      const correct  = (m.correctText && m.correctText.length)
+        ? m.correctText.join(", ")
+        : ((m.correct || []).join(", "));
+
+      reviewCard.innerHTML =
+        '<div class="review-meta">' +
+          '<span class="review-pill">' + escapeHtml(when) + '</span>' +
+          '<span class="review-pill">' + escapeHtml(m.domain || "—") + '</span>' +
+          '<span class="review-pill">Question #' + escapeHtml(String(m.num != null ? m.num : "?")) + '</span>' +
+          '<span class="review-pill">' + escapeHtml(modeStr) + ' &middot; ' + escapeHtml(timerStr) + '</span>' +
+        '</div>' +
+        '<h3 class="review-stem">' + escapeHtml(m.stem || "(stem unavailable)") + '</h3>' +
+        '<div class="review-answer-grid">' +
+          '<div class="review-answer review-wrong">' +
+            '<div class="review-answer-label">Your answer</div>' +
+            '<div class="review-answer-value">' + escapeHtml(yourPick) + '</div>' +
+          '</div>' +
+          '<div class="review-answer review-correct">' +
+            '<div class="review-answer-label">Correct answer</div>' +
+            '<div class="review-answer-value">' + escapeHtml(correct) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="review-explanation">' +
+          '<h4>Explanation</h4>' +
+          '<p>' + escapeHtml(m.explanation || "(no explanation recorded)") + '</p>' +
+        '</div>';
+    } else {
+      const wrongHtml = (m.wrongMatches || []).map((w) =>
+        '<li><strong>' + escapeHtml(w.item) + '</strong>: ' +
+        'you picked <em>' + escapeHtml(w.userPick || "(none)") + '</em>, ' +
+        'correct was <strong>' + escapeHtml(w.correct) + '</strong></li>'
+      ).join("");
+
+      reviewCard.innerHTML =
+        '<div class="review-meta">' +
+          '<span class="review-pill">' + escapeHtml(when) + '</span>' +
+          '<span class="review-pill">' + escapeHtml(m.domain || "—") + '</span>' +
+          '<span class="review-pill">PBQ &middot; ' + escapeHtml(m.title || m.pbqId || "?") + '</span>' +
+          '<span class="review-pill">' + escapeHtml(modeStr) + ' &middot; ' + escapeHtml(timerStr) + '</span>' +
+        '</div>' +
+        '<h3 class="review-stem">' + escapeHtml(m.prompt || "(prompt unavailable)") + '</h3>' +
+        '<div class="review-explanation">' +
+          '<h4>Wrong matches</h4>' +
+          '<ul class="review-wrong-list">' + wrongHtml + '</ul>' +
+        '</div>' +
+        '<div class="review-explanation">' +
+          '<h4>Explanation</h4>' +
+          '<p>' + escapeHtml(m.explanation || "(no explanation recorded)") + '</p>' +
+        '</div>';
+    }
   }
 
   function renderMissHistory() {
